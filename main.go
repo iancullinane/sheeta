@@ -7,7 +7,12 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/cloud"
+	"github.com/sirupsen/logrus"
 )
 
 // Variables used for command line parameters
@@ -23,6 +28,10 @@ func init() {
 
 func main() {
 
+	logger := logrus.New()
+	logger.Level = logrus.InfoLevel
+	logger.Out = os.Stdout
+
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + Token)
 	if err != nil {
@@ -30,8 +39,22 @@ func main() {
 		return
 	}
 
+	awsConfigUsEast2 := &aws.Config{
+		S3ForcePathStyle: aws.Bool(true),
+		Region:           aws.String("us-east-2"), // us-east-2 is the destination bucket region
+	}
+
+	stsSessionUsEast2 := session.Must(session.NewSession(awsConfigUsEast2))
+
+	r := cloud.Resources{
+		CF:     cloudformation.New(stsSessionUsEast2),
+		Logger: logger,
+	}
+
+	ch := cloud.NewCloud(r)
+
 	// Register the messageCreate func as a callback for MessageCreate events.
-	dg.AddHandler(messageCreate)
+	dg.AddHandler(ch.Handler)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -48,24 +71,4 @@ func main() {
 
 	// Cleanly close down the Discord session.
 	dg.Close()
-}
-
-// This function will be called (due to AddHandler above) every time a new
-// message is created on any channel that the autenticated bot has access to.
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
-	// If the message is "ping" reply with "Pong!"
-	if m.Content == "ping" {
-		s.ChannelMessageSend(m.ChannelID, "Pong!")
-	}
-
-	// If the message is "pong" reply with "Ping!"
-	if m.Content == "pong" {
-		s.ChannelMessageSend(m.ChannelID, "Ping!")
-	}
 }
