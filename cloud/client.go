@@ -39,7 +39,7 @@ func (c *cloud) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	Create(c.r)
+	// Create(c.r)
 
 }
 
