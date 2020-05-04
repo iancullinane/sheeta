@@ -9,12 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
-// Resources are API's needed to execute a task
-type Resources struct {
-	CF     CFClient
-	Logger Logger
-}
-
 // Create is the main logic tied to this lambda
 func (c *cloud) Create(r Resources) func(ctx context.Context, cwEvent events.CloudWatchEvent) error {
 	return func(ctx context.Context, cwEvent events.CloudWatchEvent) error {

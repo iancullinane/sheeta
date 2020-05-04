@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/cloud"
 	"github.com/sirupsen/logrus"
@@ -28,36 +29,36 @@ func init() {
 
 func main() {
 
+	// Set up logger to be used by package clients
 	logger := logrus.New()
 	logger.Level = logrus.InfoLevel
 	logger.Out = os.Stdout
 
 	// Create a new Discord session using the provided bot token.
-	dg, err := discordgo.New("Bot " + Token)
+	d, err := discordgo.New("Bot " + Token)
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
+		logger.Fatalf("Could not start bot: %s", err)
 	}
 
+	// AWS config for client creation
 	awsConfigUsEast2 := &aws.Config{
 		S3ForcePathStyle: aws.Bool(true),
 		Region:           aws.String("us-east-2"), // us-east-2 is the destination bucket region
 	}
-
 	stsSessionUsEast2 := session.Must(session.NewSession(awsConfigUsEast2))
 
 	r := cloud.Resources{
+		S3:     s3.New(stsSessionUsEast2),
 		CF:     cloudformation.New(stsSessionUsEast2),
 		Logger: logger,
 	}
-
-	ch := cloud.NewCloud(r)
+	c := cloud.NewCloud(r)
 
 	// Register the messageCreate func as a callback for MessageCreate events.
-	dg.AddHandler(ch.Handler)
+	d.AddHandler(c.Handler)
 
 	// Open a websocket connection to Discord and begin listening.
-	err = dg.Open()
+	err = d.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
 		return
@@ -70,5 +71,5 @@ func main() {
 	<-sc
 
 	// Cleanly close down the Discord session.
-	dg.Close()
+	d.Close()
 }
