@@ -17,7 +17,7 @@ func ParseMessage(ctx context.Context, m string, args []string) error {
 	messenger := &cli.App{
 		Commands: []*cli.Command{
 			&cli.Command{
-				Name:  "create",
+				Name:  "deploy",
 				Usage: "Execute the given CloudFormation on an environment",
 				Flags: []cli.Flag{
 					&cli.StringFlag{

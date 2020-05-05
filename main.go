@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/cloud"
+	"github.com/iancullinane/sheeta/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,6 +35,10 @@ func main() {
 	logger.Level = logrus.InfoLevel
 	logger.Out = os.Stdout
 
+	// Set up config
+	var conf config.Config
+	conf.BuildConfigFromFile("./config/base.yaml")
+
 	// Create a new Discord session using the provided bot token.
 	d, err := discordgo.New("Bot " + Token)
 	if err != nil {
@@ -52,7 +57,7 @@ func main() {
 		CF:     cloudformation.New(stsSessionUsEast2),
 		Logger: logger,
 	}
-	c := cloud.NewCloud(r)
+	c := cloud.NewCloud(r, conf.GetValueMap())
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	d.AddHandler(c.Handler)

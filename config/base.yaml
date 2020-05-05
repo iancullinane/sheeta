@@ -1,0 +1,4 @@
+environment: dev
+name: sheeta
+kv:
+  bucketName: craft-cf-bucket

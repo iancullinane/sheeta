@@ -1,7 +1,8 @@
 package cloud
 
 type cloud struct {
-	r Resources
+	r   Resources
+	cfg map[string]string
 }
 
 // Resources are API's needed to execute a task
@@ -12,8 +13,9 @@ type Resources struct {
 }
 
 // NewCloud returns a new cloud client
-func NewCloud(r Resources) *cloud {
+func NewCloud(r Resources, cfg map[string]string) *cloud {
 	return &cloud{
-		r: r,
+		r:   r,
+		cfg: c,
 	}
 }

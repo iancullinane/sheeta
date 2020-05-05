@@ -8,4 +8,5 @@ require (
 	github.com/bwmarrin/discordgo v0.20.3
 	github.com/sirupsen/logrus v1.5.0
 	github.com/urfave/cli/v2 v2.2.0
+	gopkg.in/yaml.v2 v2.2.2
 )

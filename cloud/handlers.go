@@ -4,7 +4,14 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
+
 	"github.com/bwmarrin/discordgo"
+)
+
+const (
+	bucketNameKey = "bucketName"
 )
 
 // This function will be called (due to AddHandler above) every time a new
@@ -17,27 +24,35 @@ func (c *cloud) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if containsUser(m.Mentions, "sheeta") {
-
-		ctx := context.Background()
-		err := ParseMessage(ctx, m.Content, strings.Split(m.ContentWithMentionsReplaced(), " "))
-		if err != nil {
-			errEmbed := PrintEmbeddedMessage(err.Error())
-			msgSend := discordgo.MessageSend{
-				Embed: &errEmbed,
-			}
-			s.ChannelMessageSendComplex(m.ChannelID, &msgSend)
-		}
-		// tokens := strings.Split(m.ContentWithMentionsReplaced(), " ")
-		// if tokens[1] == "create" {
-		// 	reply := fmt.Sprintf("%s", tokens[1:])
-		// 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Creating stack: %s", reply))
-		// 	return
-		// }
-		// reply := fmt.Sprintf("Heard! (%s)", m.Message.Content)
-		// s.ChannelMessageSend(m.ChannelID, "Not a valid command")
+	if !containsUser(m.Mentions, "sheeta") {
 		return
 	}
+
+	ctx := context.Background()
+	// Parse from the cli
+	err := ParseMessage(ctx, m.Content, strings.Split(m.ContentWithMentionsReplaced(), " "))
+	if err != nil {
+		errEmbed := PrintEmbeddedMessage(err.Error())
+		msgSend := discordgo.MessageSend{
+			Embed: &errEmbed,
+		}
+		s.ChannelMessageSendComplex(m.ChannelID, &msgSend)
+		return
+	}
+
+	input := s3.GetObjectInput{
+		Bucket: aws.String(c.cfg[bucketNameKey]),
+	}
+
+	c.r.S3.GetObject(&input)
+	// tokens := strings.Split(m.ContentWithMentionsReplaced(), " ")
+	// if tokens[1] == "create" {
+	// 	reply := fmt.Sprintf("%s", tokens[1:])
+	// 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Creating stack: %s", reply))
+	// 	return
+	// }
+	// reply := fmt.Sprintf("Heard! (%s)", m.Message.Content)
+	// s.ChannelMessageSend(m.ChannelID, "Not a valid command")
 
 	// Create(c.r)
 
