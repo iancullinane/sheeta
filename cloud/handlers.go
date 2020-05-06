@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/iancullinane/sheeta/bot"
 	"github.com/urfave/cli/v2"
 )
 
@@ -19,25 +18,18 @@ var (
 	}
 )
 
-// type Handler func(s *discordgo.Session, m *discordgo.MessageCreate)
-
-func (c *cloud) ExportModule(name string) *bot.Module {
-
-	handlers := make(map[string]bot.Handler)
-	handlers["deploy"] = bot.Handler{
-		Fn: c.DeployHandler,
-		Flags: []cli.Flag{
-			&templateFlag,
-		},
-	}
-	cloudMod := bot.NewModule("cloud", handlers)
-
-	return cloudMod
+func (c *cloud) GetHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate) {
+	var h []func(s *discordgo.Session, m *discordgo.MessageCreate)
+	h = append(h, c.DeployHandler)
+	// h = append(h, c.UpdateHandler)
+	return h
 }
+
+// type Handler func(s *discordgo.Session, m *discordgo.MessageCreate)
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
-func (c *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
@@ -48,6 +40,14 @@ func (c *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate) 
 	if !containsUser(m.Mentions, "sheeta") {
 		return
 	}
+
+	log.Println("Start deploy handler")
+
+	// log.Printf("cli: %#v", cm.cliapp)
+
+	test := []string{"one", "two"}
+	cm.cliapp.Run(test)
+	// c.cliapp.Run(strings.Split(m.ContentWithMentionsReplaced(), " ")[1:])
 
 	// if err != nil {
 	// 	errEmbed := PrintEmbeddedMessage(err.Error())
@@ -74,6 +74,23 @@ func (c *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate) 
 
 	// Create(c.r)
 	log.Println("Finished deploy handler")
+}
+
+// This function will be called (due to AddHandler above) every time a new
+// message is created on any channel that the autenticated bot has access to.
+func (c *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+
+	// Ignore all messages created by the bot itself
+	// This isn't required in this specific example but it's a good practice.
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+
+	if !containsUser(m.Mentions, "sheeta") {
+		return
+	}
+
+	log.Println("Finished update handler")
 }
 
 // PrintEmbeddedMessage creates the data structure for a styled message

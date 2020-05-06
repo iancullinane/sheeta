@@ -22,6 +22,11 @@ var (
 	Token string
 )
 
+type Module interface {
+	GenerateCLI()
+	GetHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate)
+}
+
 func init() {
 
 	flag.StringVar(&Token, "t", "", "Bot Token")
@@ -52,17 +57,24 @@ func main() {
 	}
 	stsSessionUsEast2 := session.Must(session.NewSession(awsConfigUsEast2))
 
-	r := cloud.Resources{
+	cr := cloud.Resources{
 		S3:     s3.New(stsSessionUsEast2),
 		CF:     cloudformation.New(stsSessionUsEast2),
 		Logger: logger,
 	}
 
-	c := cloud.NewCloud(r, conf.GetValueMap())
-	cloudBot := c.ExportModule("cloud")
+	// Any module must fit the module definition of retreiving handlers,
+	// and generating a CLI
+	var bot []Module
+	c := cloud.NewCloud(cr, conf.GetValueMap())
+	c.GenerateCLI()
+	bot = append(bot, c)
+
 	// Register the messageCreate func as a callback for MessageCreate events.
-	for _, hand := range cloudBot.Handlers {
-		d.AddHandler(hand)
+	for _, mod := range bot {
+		for _, mod := range mod.GetHandlers() {
+			d.AddHandler(mod)
+		}
 	}
 
 	// Open a websocket connection to Discord and begin listening.
