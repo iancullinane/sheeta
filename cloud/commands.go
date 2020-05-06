@@ -1,20 +1,17 @@
 package cloud
 
 import (
-	"context"
 	"fmt"
 	"log"
 
 	"github.com/urfave/cli/v2"
 )
 
-// ParseMessage reads the incoming mention of Sheeta and executes work
-func ParseMessage(ctx context.Context, m string, args []string) error {
+// func(c *cloud) AddCommand
 
-	// var var1 string
-	// var var2 string
-
-	messenger := &cli.App{
+// GetCLI returns a CLI definition, conforms to modularized version
+func (c *cloud) GetCLI() *cli.App {
+	return &cli.App{
 		Commands: []*cli.Command{
 			&cli.Command{
 				Name:  "deploy",
@@ -27,7 +24,7 @@ func ParseMessage(ctx context.Context, m string, args []string) error {
 				},
 				Action: func(c *cli.Context) error {
 
-					log.Printf("Deploy: %s", m)
+					log.Printf("Deploy")
 
 					return nil
 				},
@@ -39,11 +36,4 @@ func ParseMessage(ctx context.Context, m string, args []string) error {
 			return fmt.Errorf("Not a valid command")
 		},
 	}
-
-	err := messenger.RunContext(ctx, args)
-	if err != nil {
-		return cli.Exit(err, 86)
-	}
-
-	return nil
 }

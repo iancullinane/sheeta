@@ -57,10 +57,13 @@ func main() {
 		CF:     cloudformation.New(stsSessionUsEast2),
 		Logger: logger,
 	}
-	c := cloud.NewCloud(r, conf.GetValueMap())
 
+	c := cloud.NewCloud(r, conf.GetValueMap())
+	cloudBot := c.ExportModule("cloud")
 	// Register the messageCreate func as a callback for MessageCreate events.
-	d.AddHandler(c.Handler)
+	for _, hand := range cloudBot.Handlers {
+		d.AddHandler(hand)
+	}
 
 	// Open a websocket connection to Discord and begin listening.
 	err = d.Open()

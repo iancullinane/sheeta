@@ -16,6 +16,6 @@ type Resources struct {
 func NewCloud(r Resources, cfg map[string]string) *cloud {
 	return &cloud{
 		r:   r,
-		cfg: c,
+		cfg: cfg,
 	}
 }
