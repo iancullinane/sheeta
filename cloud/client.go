@@ -1,6 +1,7 @@
 package cloud
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/bwmarrin/discordgo"
@@ -48,13 +49,11 @@ func (c *cloud) GenerateCLI() {
 	// 	},
 	// }
 
-	log.Printf("%#v", handlers)
-
 	handlerFuncs := make(map[string]func(s *discordgo.Session, m *discordgo.MessageCreate))
 	for k, hand := range handlers {
 		handlerFuncs[k] = hand.Fn
 	}
-	log.Printf("%#v", handlerFuncs)
+
 	newCLI := c.buildCLI(handlers)
 	c.cliapp = &newCLI
 }
@@ -68,15 +67,28 @@ func (c *cloud) buildCLI(handlers map[string]bot.Handler) cli.App {
 	}
 	tmpCLI.Commands = cmds
 
+	tmpCLI.Action = func(c *cli.Context) error {
+		log.Println("Error parsing")
+		return fmt.Errorf("Not a valid command")
+	}
+
+	tmpCLI.Name = "cloud"
+	tmpCLI.HideHelp = true
 	return tmpCLI
 }
 
 func buildCmd(name, usage string, handler bot.Handler) *cli.Command {
 
+	log.Printf("%#v", handler)
+
 	c := cli.Command{
 		Name:  name,
 		Usage: usage,
 		Flags: handler.Flags,
+		Action: func(c *cli.Context) error {
+			log.Printf("This is the %s command", name)
+			return nil
+		},
 	}
 
 	return &c
@@ -103,4 +115,35 @@ func buildCmd(name, usage string, handler bot.Handler) *cli.Command {
 // 	cloudMod := bot.NewModule("cloud", handlers)
 
 // 	return cloudMod
+// }
+
+// messenger := &cli.App{
+// 	Commands: []*cli.Command{
+// 		&cli.Command{
+// 			Name:  "deploy",
+// 			Usage: "Execute the given CloudFormation on an environment",
+// 			Flags: []cli.Flag{
+// 				&cli.StringFlag{
+// 					Name:  "template-name",
+// 					Usage: "Repository of the service",
+// 				},
+// 			},
+// 			Action: func(c *cli.Context) error {
+
+// 				log.Printf("Deploy: %s", m)
+
+// 				return nil
+// 			},
+// 		},
+// 	},
+
+// 	// TODO::Put default in its own function
+// 	Action: func(c *cli.Context) error {
+// 		return fmt.Errorf("Not a valid command")
+// 	},
+// }
+
+// err := messenger.RunContext(ctx, args)
+// if err != nil {
+// 	return cli.Exit(err, 86)
 // }

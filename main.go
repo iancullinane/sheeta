@@ -68,6 +68,7 @@ func main() {
 	var bot []Module
 	c := cloud.NewCloud(cr, conf.GetValueMap())
 	c.GenerateCLI()
+
 	bot = append(bot, c)
 
 	// Register the messageCreate func as a callback for MessageCreate events.

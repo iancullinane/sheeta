@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"log"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/urfave/cli/v2"
@@ -18,17 +19,16 @@ var (
 	}
 )
 
-func (c *cloud) GetHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (cm *cloud) GetHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var h []func(s *discordgo.Session, m *discordgo.MessageCreate)
-	h = append(h, c.DeployHandler)
+	h = append(h, cm.DeployHandler)
 	// h = append(h, c.UpdateHandler)
 	return h
 }
 
 // type Handler func(s *discordgo.Session, m *discordgo.MessageCreate)
 
-// This function will be called (due to AddHandler above) every time a new
-// message is created on any channel that the autenticated bot has access to.
+// DeployHandler is a handler funciton for the 'deploy' command
 func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
@@ -41,22 +41,18 @@ func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 		return
 	}
 
-	log.Println("Start deploy handler")
+	log.Printf("execute for %#v", strings.Split(m.ContentWithMentionsReplaced(), " ")[1:])
 
-	// log.Printf("cli: %#v", cm.cliapp)
-
-	test := []string{"one", "two"}
-	cm.cliapp.Run(test)
-	// c.cliapp.Run(strings.Split(m.ContentWithMentionsReplaced(), " ")[1:])
-
-	// if err != nil {
-	// 	errEmbed := PrintEmbeddedMessage(err.Error())
-	// 	msgSend := discordgo.MessageSend{
-	// 		Embed: &errEmbed,
-	// 	}
-	// 	s.ChannelMessageSendComplex(m.ChannelID, &msgSend)
-	// 	return
-	// }
+	// cm.cliapp.Run(test)
+	err := cm.cliapp.Run(strings.Split(m.ContentWithMentionsReplaced(), " ")[1:])
+	if err != nil {
+		errEmbed := PrintEmbeddedMessage(err.Error())
+		msgSend := discordgo.MessageSend{
+			Embed: &errEmbed,
+		}
+		s.ChannelMessageSendComplex(m.ChannelID, &msgSend)
+		return
+	}
 
 	// input := s3.GetObjectInput{
 	// 	Bucket: aws.String(c.cfg[bucketNameKey]),
@@ -73,12 +69,11 @@ func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 	// s.ChannelMessageSend(m.ChannelID, "Not a valid command")
 
 	// Create(c.r)
-	log.Println("Finished deploy handler")
 }
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
-func (c *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (cm *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
@@ -90,7 +85,6 @@ func (c *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate) 
 		return
 	}
 
-	log.Println("Finished update handler")
 }
 
 // PrintEmbeddedMessage creates the data structure for a styled message
