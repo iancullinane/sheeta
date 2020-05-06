@@ -22,11 +22,9 @@ var (
 func (cm *cloud) GetHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var h []func(s *discordgo.Session, m *discordgo.MessageCreate)
 	h = append(h, cm.DeployHandler)
-	// h = append(h, c.UpdateHandler)
+	h = append(h, cm.UpdateHandler)
 	return h
 }
-
-// type Handler func(s *discordgo.Session, m *discordgo.MessageCreate)
 
 // DeployHandler is a handler funciton for the 'deploy' command
 func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -41,7 +39,10 @@ func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 		return
 	}
 
-	log.Printf("execute for %#v", strings.Split(m.ContentWithMentionsReplaced(), " ")[1:])
+	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
+	if msg[1] != "deploy" {
+		return
+	}
 
 	// cm.cliapp.Run(test)
 	err := cm.cliapp.Run(strings.Split(m.ContentWithMentionsReplaced(), " ")[1:])
@@ -69,6 +70,7 @@ func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 	// s.ChannelMessageSend(m.ChannelID, "Not a valid command")
 
 	// Create(c.r)
+	log.Print("Completed update handler")
 }
 
 // This function will be called (due to AddHandler above) every time a new
@@ -85,6 +87,23 @@ func (cm *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 		return
 	}
 
+	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
+	if msg[1] != "update" {
+		return
+	}
+
+	// cm.cliapp.Run(test)
+	err := cm.cliapp.Run(msg)
+	if err != nil {
+		errEmbed := PrintEmbeddedMessage(err.Error())
+		msgSend := discordgo.MessageSend{
+			Embed: &errEmbed,
+		}
+		s.ChannelMessageSendComplex(m.ChannelID, &msgSend)
+		return
+	}
+
+	log.Print("Completed update handler")
 }
 
 // PrintEmbeddedMessage creates the data structure for a styled message
