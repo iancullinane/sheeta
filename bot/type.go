@@ -7,6 +7,7 @@ import (
 
 // Handler is the function definition and its flags
 type Handler struct {
-	Fn    func(s *discordgo.Session, m *discordgo.MessageCreate)
-	Flags []cli.Flag
+	ApiFn     func(c *cli.Context) error
+	DiscordFn func(s *discordgo.Session, m *discordgo.MessageCreate)
+	Flags     []cli.Flag
 }

@@ -1,11 +1,6 @@
 package cloud
 
 import (
-	"fmt"
-	"log"
-
-	"github.com/bwmarrin/discordgo"
-	"github.com/iancullinane/sheeta/bot"
 	"github.com/urfave/cli/v2"
 )
 
@@ -29,64 +24,4 @@ func NewCloud(r Resources, cfg map[string]string) *cloud {
 		r:   r,
 		cfg: cfg,
 	}
-}
-
-func (c *cloud) GenerateCLI() {
-
-	handlers := make(map[string]bot.Handler)
-
-	handlers["deploy"] = bot.Handler{
-		Fn: c.DeployHandler,
-		Flags: []cli.Flag{
-			&templateFlag,
-		},
-	}
-
-	handlers["update"] = bot.Handler{
-		Fn: c.UpdateHandler,
-		Flags: []cli.Flag{
-			&templateFlag,
-		},
-	}
-
-	handlerFuncs := make(map[string]func(s *discordgo.Session, m *discordgo.MessageCreate))
-	for k, hand := range handlers {
-		handlerFuncs[k] = hand.Fn
-	}
-
-	newCLI := c.buildCLI(handlers)
-	c.cliapp = &newCLI
-}
-
-func (c *cloud) buildCLI(handlers map[string]bot.Handler) cli.App {
-
-	var tmpCLI cli.App
-	var cmds []*cli.Command
-	for k, hand := range handlers {
-		cmds = append(cmds, buildCmd(k, "", hand))
-	}
-	tmpCLI.Commands = cmds
-
-	tmpCLI.Action = func(c *cli.Context) error {
-		log.Println("Error parsing")
-		return fmt.Errorf("Not a valid command")
-	}
-
-	tmpCLI.Name = "cloud"
-	tmpCLI.HideHelp = true
-	return tmpCLI
-}
-
-func buildCmd(name, usage string, handler bot.Handler) *cli.Command {
-
-	c := cli.Command{
-		Name:  name,
-		Usage: usage,
-		Flags: handler.Flags,
-		Action: func(c *cli.Context) error {
-			return nil
-		},
-	}
-
-	return &c
 }

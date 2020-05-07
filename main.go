@@ -24,7 +24,7 @@ var (
 
 type Module interface {
 	GenerateCLI()
-	GetHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate)
+	ExportHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate)
 }
 
 func init() {
@@ -73,7 +73,7 @@ func main() {
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	for _, mod := range bot {
-		for _, mod := range mod.GetHandlers() {
+		for _, mod := range mod.ExportHandlers() {
 			d.AddHandler(mod)
 		}
 	}
