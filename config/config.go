@@ -3,6 +3,7 @@ package config
 import (
 	"io/ioutil"
 	"log"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -10,28 +11,33 @@ import (
 // Config holds values from the local yaml
 // TODO::Config store interface for modularity
 type Config struct {
-	env  string            `yaml:"environment"`
-	name string            `yaml:"name"`
-	kv   map[string]string `yaml:"kv,omitempty"`
+	Env  string            `yaml:"environment"`
+	Name string            `yaml:"name"`
+	KV   map[string]string `yaml:"kv,omitempty"`
 }
 
 // BuildConfigFromFile returns the config from a path
 func (c *Config) BuildConfigFromFile(path string) *Config {
 
-	yamlFile, err := ioutil.ReadFile(path)
+	log.Println("Build Config")
+	filename, _ := filepath.Abs(path)
+	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Fatalf("error reading config %v ", err)
 	}
 
-	err = yaml.Unmarshal(yamlFile, c)
+	var config Config
+	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
 		log.Fatalf("Unmarshal: %v", err)
 	}
 
-	return c
+	log.Printf("unmarshalled file %#v", config)
+
+	return &config
 }
 
 // GetValueMap returns the loaded kv map from config
 func (c *Config) GetValueMap() map[string]string {
-	return c.kv
+	return c.KV
 }

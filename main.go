@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/cloud"
 	"github.com/iancullinane/sheeta/config"
@@ -41,8 +42,9 @@ func main() {
 	logger.Out = os.Stdout
 
 	// Set up config
-	var conf config.Config
-	conf.BuildConfigFromFile("./config/base.yaml")
+	var conf *config.Config
+	conf = conf.BuildConfigFromFile("./config/base.yaml")
+	log.Printf("config in main %#v", conf)
 
 	// Create a new Discord session using the provided bot token.
 	d, err := discordgo.New("Bot " + Token)
@@ -50,18 +52,27 @@ func main() {
 		logger.Fatalf("Could not start bot: %s", err)
 	}
 
+	sess := session.Must(session.NewSession())
+
 	// AWS config for client creation
 	awsConfigUsEast2 := &aws.Config{
-		S3ForcePathStyle: aws.Bool(true),
-		Region:           aws.String("us-east-2"), // us-east-2 is the destination bucket region
+		CredentialsChainVerboseErrors: aws.Bool(true),
+		S3ForcePathStyle:              aws.Bool(true),
+		Region:                        aws.String("us-east-2"), // us-east-2 is the destination bucket region
 	}
-	stsSessionUsEast2 := session.Must(session.NewSession(awsConfigUsEast2))
+	// Create service client value configured for credentials
+	// from assumed role.
+	// s3svc := s3.New(sess, awsConfigUsEast2)
+	s3svc := s3manager.NewDownloader(sess)
+	cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
 
 	cr := cloud.Resources{
-		S3:     s3.New(stsSessionUsEast2),
-		CF:     cloudformation.New(stsSessionUsEast2),
+		S3:     s3svc,
+		CF:     cfnSvc,
 		Logger: logger,
 	}
+
+	log.Printf("%#v", conf.GetValueMap())
 
 	// Any module must fit the module definition of retreiving handlers,
 	// and generating a CLI

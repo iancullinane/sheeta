@@ -28,6 +28,8 @@ func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 		return
 	}
 
+	log.Println(strings.Split(m.ContentWithMentionsReplaced(), " ")[1:])
+
 	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
 	if msg[1] != "deploy" {
 		return
@@ -38,25 +40,10 @@ func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 	// input validation only
 	err := cm.cliapp.Run(msg)
 	if err != nil {
-		SendErrorToUser(s, err, m.ChannelID)
+		SendErrorToUser(s, err, m.ChannelID, "Deploy error")
 		return
 	}
 
-	// input := s3.GetObjectInput{
-	// 	Bucket: aws.String(cm.cfg[bucketNameKey]),
-	// }
-
-	// obj, err := cm.r.S3.GetObject(&input)
-	// if err != nil {
-	// 	SendErrorToUser(s, err, m.ChannelID)
-	// 	return
-	// }
-
-	// reply := fmt.Sprintf("Heard! (%s) for object: %s", m.Message.Content, *obj.StorageClass)
-	// s.ChannelMessageSend(m.ChannelID, reply)
-
-	// Create(c.r)
-	log.Print("Completed deploy handler")
 }
 
 // This function will be called (due to AddHandler above) every time a new
@@ -83,7 +70,7 @@ func (cm *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 	// input validation only
 	err := cm.cliapp.Run(msg)
 	if err != nil {
-		SendErrorToUser(s, err, m.ChannelID)
+		SendErrorToUser(s, err, m.ChannelID, "Update error")
 		return
 	}
 
@@ -101,10 +88,11 @@ func EmbedErrorMsg(s string) discordgo.MessageEmbed {
 // SendErrorToUser sends the contents of an error back to the user as an
 // embedded message
 // TODO::Send to the user privately (does discord have ephemeral messages?)
-func SendErrorToUser(s *discordgo.Session, err error, channelID string) {
+func SendErrorToUser(s *discordgo.Session, err error, channelID string, content string) {
 	errEmbed := EmbedErrorMsg(err.Error())
 	msgSend := discordgo.MessageSend{
-		Embed: &errEmbed,
+		Content: content,
+		Embed:   &errEmbed,
 	}
 	s.ChannelMessageSendComplex(channelID, &msgSend)
 }

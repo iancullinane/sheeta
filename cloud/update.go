@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func (cm *cloud) Deploy(r Resources, req *cli.Context) error {
+func (cm *cloud) Update(r Resources, req *cli.Context) error {
 
 	env := req.String("env")
 	stack := req.String("stack")
@@ -40,7 +40,7 @@ func (cm *cloud) Deploy(r Resources, req *cli.Context) error {
 		panic(err)
 	}
 
-	cr := cloudformation.CreateStackInput{
+	cr := cloudformation.UpdateStackInput{
 		RoleARN:     aws.String("arn:aws:iam::346096930733:role/chat-ops-role"),
 		StackName:   aws.String(sc.Name),
 		TemplateURL: aws.String(templateURL),
@@ -50,7 +50,7 @@ func (cm *cloud) Deploy(r Resources, req *cli.Context) error {
 		},
 	}
 
-	_, err = cm.r.CF.CreateStack(&cr)
+	_, err = cm.r.CF.UpdateStack(&cr)
 	if aerr, ok := err.(awserr.Error); ok {
 		log.Println(aerr)
 		return fmt.Errorf("Create Stack Request: %s", aerr)

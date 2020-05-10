@@ -11,14 +11,14 @@ import (
 
 var (
 	stackNameFlag = cli.StringFlag{
-		Name:     "stack-name",
-		Usage:    "Name to give the stack",
+		Name:     "env",
+		Usage:    "ENV to deploy into",
 		Required: true,
 	}
 
 	templateFlag = cli.StringFlag{
-		Name:     "template-name",
-		Usage:    "Repository of the service",
+		Name:     "stack",
+		Usage:    "Name fo the template stack yaml",
 		Required: true,
 	}
 )
@@ -46,6 +46,14 @@ func (cm *cloud) GenerateCLI() {
 		DiscordFn: cm.UpdateHandler,
 		Flags: []cli.Flag{
 			&templateFlag,
+			&stackNameFlag,
+		},
+		ApiFn: func(c *cli.Context) error {
+			err := cm.Update(cm.r, c)
+			if err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 
