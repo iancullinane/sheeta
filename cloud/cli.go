@@ -2,7 +2,6 @@ package cloud
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/bot"
@@ -23,9 +22,22 @@ var (
 	}
 )
 
+// GenerateCLI creates a cli for this module
+// TODO::Automate and extract from the handlers
 func (cm *cloud) GenerateCLI() {
 
 	handlers := make(map[string]bot.Handler)
+
+	handlers["test"] = bot.Handler{
+		DiscordFn: cm.TestHandler,
+		ApiFn: func(c *cli.Context) error {
+			err := cm.Test(cm.r, c)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
 
 	handlers["deploy"] = bot.Handler{
 		DiscordFn: cm.DeployHandler,
@@ -76,7 +88,6 @@ func (cm *cloud) buildCLI(handlers map[string]bot.Handler) cli.App {
 	tmpCLI.Commands = cmds
 
 	tmpCLI.Action = func(c *cli.Context) error {
-		log.Println("Error parsing")
 		return fmt.Errorf("Not a valid command")
 	}
 

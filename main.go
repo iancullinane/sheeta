@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,13 +22,13 @@ var (
 	Token string
 )
 
+// Module is an independent set of actions containing its cli and handlers
 type Module interface {
 	GenerateCLI()
 	ExportHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate)
 }
 
 func init() {
-
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
 }
@@ -44,7 +43,6 @@ func main() {
 	// Set up config
 	var conf *config.Config
 	conf = conf.BuildConfigFromFile("./config/base.yaml")
-	log.Printf("config in main %#v", conf)
 
 	// Create a new Discord session using the provided bot token.
 	d, err := discordgo.New("Bot " + Token)
@@ -71,8 +69,6 @@ func main() {
 		CF:     cfnSvc,
 		Logger: logger,
 	}
-
-	log.Printf("%#v", conf.GetValueMap())
 
 	// Any module must fit the module definition of retreiving handlers,
 	// and generating a CLI

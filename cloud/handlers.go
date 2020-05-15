@@ -1,10 +1,10 @@
 package cloud
 
 import (
-	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/bot"
 )
 
 const (
@@ -17,7 +17,21 @@ func (cm *cloud) ExportHandlers() []func(s *discordgo.Session, m *discordgo.Mess
 	var h []func(s *discordgo.Session, m *discordgo.MessageCreate)
 	h = append(h, cm.DeployHandler)
 	h = append(h, cm.UpdateHandler)
+	h = append(h, cm.TestHandler)
 	return h
+}
+
+func (cm *cloud) TestHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// Just ignore certain cases like the bot mentioning itself
+	if !validateMsg(m.Author.ID, s.State.User.ID, m.Mentions) {
+		return
+	}
+
+	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
+	if msg[1] != "test" {
+		return
+	}
+	bot.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
 }
 
 // DeployHandler is a handler function for the 'deploy' command
@@ -28,22 +42,17 @@ func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 		return
 	}
 
-	log.Println(strings.Split(m.ContentWithMentionsReplaced(), " ")[1:])
-
 	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
 	if msg[1] != "deploy" {
 		return
 	}
 
-	// TODO::I think think there is a better way to leverage the run function
-	// of the cli library, but right now I think it is fine to use it for
-	// input validation only
 	err := cm.cliapp.Run(msg)
 	if err != nil {
-		SendErrorToUser(s, err, m.ChannelID, "Deploy error")
+		bot.SendErrorToUser(s, err, m.ChannelID, "Deploy error")
 		return
 	}
-
+	bot.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
 }
 
 // This function will be called (due to AddHandler above) every time a new
@@ -70,31 +79,11 @@ func (cm *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 	// input validation only
 	err := cm.cliapp.Run(msg)
 	if err != nil {
-		SendErrorToUser(s, err, m.ChannelID, "Update error")
+		bot.SendErrorToUser(s, err, m.ChannelID, "Update error")
 		return
 	}
 
-	log.Print("Completed update handler")
-}
-
-// EmbedErrorMsg sends an embedded message with a red styled edge
-func EmbedErrorMsg(s string) discordgo.MessageEmbed {
-	var me discordgo.MessageEmbed
-	me.Color = 14813706
-	me.Description = s
-	return me
-}
-
-// SendErrorToUser sends the contents of an error back to the user as an
-// embedded message
-// TODO::Send to the user privately (does discord have ephemeral messages?)
-func SendErrorToUser(s *discordgo.Session, err error, channelID string, content string) {
-	errEmbed := EmbedErrorMsg(err.Error())
-	msgSend := discordgo.MessageSend{
-		Content: content,
-		Embed:   &errEmbed,
-	}
-	s.ChannelMessageSendComplex(channelID, &msgSend)
+	bot.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
 }
 
 func validateMsg(authorID string, userID string, mentions []*discordgo.User) bool {

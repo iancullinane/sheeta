@@ -18,8 +18,6 @@ type Config struct {
 
 // BuildConfigFromFile returns the config from a path
 func (c *Config) BuildConfigFromFile(path string) *Config {
-
-	log.Println("Build Config")
 	filename, _ := filepath.Abs(path)
 	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -29,10 +27,8 @@ func (c *Config) BuildConfigFromFile(path string) *Config {
 	var config Config
 	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
-		log.Fatalf("Unmarshal: %v", err)
+		log.Fatalf("Unmarshal failure: %v", err)
 	}
-
-	log.Printf("unmarshalled file %#v", config)
 
 	return &config
 }

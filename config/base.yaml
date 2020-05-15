@@ -2,3 +2,4 @@ environment: dev
 name: sheeta
 kv:
   bucketName: craft-cf-bucket
+  cloudRole: <make this yourself>
