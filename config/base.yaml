@@ -2,4 +2,4 @@ environment: dev
 name: sheeta
 kv:
   bucketName: craft-cf-bucket
-  cloudRole: <make this yourself>
+  cloudRole: arn:aws:iam::346096930733:role/chat-ops-role

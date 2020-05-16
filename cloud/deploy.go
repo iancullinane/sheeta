@@ -8,7 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
+	cf "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
@@ -37,7 +37,7 @@ func (cm *cloud) Deploy(r Resources, req *cli.Context) error {
 		panic(err)
 	}
 
-	cr := cloudformation.CreateStackInput{
+	cr := cf.CreateStackInput{
 		RoleARN:     aws.String(cm.cfg["cloud-role"]),
 		StackName:   aws.String(sc.Name),
 		TemplateURL: aws.String(templateURL),
@@ -45,6 +45,13 @@ func (cm *cloud) Deploy(r Resources, req *cli.Context) error {
 			aws.String("CAPABILITY_AUTO_EXPAND"),
 			aws.String("CAPABILITY_NAMED_IAM"),
 		},
+	}
+
+	for k, v := range sc.Tags {
+		cr.Tags = append(cr.Tags, &cf.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		})
 	}
 
 	_, err = cm.r.CF.CreateStack(&cr)
