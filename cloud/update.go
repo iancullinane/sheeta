@@ -37,7 +37,7 @@ func (cm *cloud) Update(r Resources, req *cli.Context) error {
 	}
 
 	cr := cloudformation.UpdateStackInput{
-		RoleARN:     aws.String(cm.cfg["cloud-role"]),
+		RoleARN:     aws.String(cm.cfg[cloudRoleKey]),
 		StackName:   aws.String(sc.Name),
 		TemplateURL: aws.String(templateURL),
 		Capabilities: []*string{

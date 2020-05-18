@@ -9,6 +9,7 @@ import (
 
 const (
 	bucketNameKey = "bucketName"
+	cloudRoleKey  = "cloudRole"
 )
 
 // ExportHandlers collects the available commands for a module for a CLI

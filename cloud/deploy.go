@@ -2,6 +2,8 @@ package cloud
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
@@ -26,25 +28,37 @@ func (cm *cloud) Deploy(r Resources, req *cli.Context) error {
 	}
 
 	buf := aws.NewWriteAtBuffer([]byte{})
-	_, err := cm.r.S3.Download(buf, &input)
+	dl, err := cm.r.S3.Download(buf, &input)
 	if aerr, ok := err.(awserr.Error); ok {
-		return fmt.Errorf("Download error: %s", aerr)
+		log.Printf("Error fetching key: %s", aerr)
 	}
 
-	var sc *StackConfig
-	err = yaml.Unmarshal(buf.Bytes(), &sc)
-	if err != nil {
-		panic(err)
+	sc := StackConfig{}
+	if dl > 0 {
+		err = yaml.Unmarshal(buf.Bytes(), &sc)
+		if err != nil {
+			panic(err)
+		}
 	}
+
+	// Have to do this anyway to deal with slashes
+	sc.Name = fmt.Sprintf("%s-%s", env, strings.Replace(stack, "/", "-", 0))
 
 	cr := cf.CreateStackInput{
-		RoleARN:     aws.String(cm.cfg["cloud-role"]),
+		RoleARN:     aws.String(cm.cfg[cloudRoleKey]),
 		StackName:   aws.String(sc.Name),
 		TemplateURL: aws.String(templateURL),
 		Capabilities: []*string{
 			aws.String("CAPABILITY_AUTO_EXPAND"),
 			aws.String("CAPABILITY_NAMED_IAM"),
 		},
+	}
+
+	for k, v := range sc.CloudConfig {
+		cr.Parameters = append(cr.Parameters, &cf.Parameter{
+			ParameterKey:   aws.String(k),
+			ParameterValue: aws.String(v.(string)),
+		})
 	}
 
 	for k, v := range sc.Tags {
