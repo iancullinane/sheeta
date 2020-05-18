@@ -42,7 +42,8 @@ func (cm *cloud) Deploy(r Resources, req *cli.Context) error {
 	}
 
 	// Have to do this anyway to deal with slashes
-	sc.Name = fmt.Sprintf("%s-%s", env, strings.Replace(stack, "/", "-", 0))
+	sc.Name = fmt.Sprintf("%s-%s", env, strings.Replace(stack, "/", "-", -1))
+	log.Println(sc.Name)
 
 	cr := cf.CreateStackInput{
 		RoleARN:     aws.String(cm.cfg[cloudRoleKey]),

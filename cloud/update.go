@@ -2,13 +2,15 @@ package cloud
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
+	cf "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
@@ -25,18 +27,24 @@ func (cm *cloud) Update(r Resources, req *cli.Context) error {
 	}
 
 	buf := aws.NewWriteAtBuffer([]byte{})
-	_, err := cm.r.S3.Download(buf, &input)
+	dl, err := cm.r.S3.Download(buf, &input)
 	if aerr, ok := err.(awserr.Error); ok {
 		return fmt.Errorf("Download error: %s", aerr)
 	}
 
-	var sc *StackConfig
-	err = yaml.Unmarshal(buf.Bytes(), &sc)
-	if err != nil {
-		panic(err)
+	sc := StackConfig{}
+	if dl > 0 {
+		err = yaml.Unmarshal(buf.Bytes(), &sc)
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	cr := cloudformation.UpdateStackInput{
+	// Have to do this anyway to deal with slashes
+	sc.Name = fmt.Sprintf("%s-%s", env, strings.Replace(stack, "/", "-", -1))
+	log.Println(sc.Name)
+
+	ur := cf.UpdateStackInput{
 		RoleARN:     aws.String(cm.cfg[cloudRoleKey]),
 		StackName:   aws.String(sc.Name),
 		TemplateURL: aws.String(templateURL),
@@ -46,7 +54,21 @@ func (cm *cloud) Update(r Resources, req *cli.Context) error {
 		},
 	}
 
-	_, err = cm.r.CF.UpdateStack(&cr)
+	for k, v := range sc.CloudConfig {
+		ur.Parameters = append(ur.Parameters, &cf.Parameter{
+			ParameterKey:   aws.String(k),
+			ParameterValue: aws.String(v.(string)),
+		})
+	}
+
+	for k, v := range sc.Tags {
+		ur.Tags = append(ur.Tags, &cf.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		})
+	}
+
+	_, err = cm.r.CF.UpdateStack(&ur)
 	if aerr, ok := err.(awserr.Error); ok {
 		return fmt.Errorf("Create Stack Request: %s", aerr)
 	}
