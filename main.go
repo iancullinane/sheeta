@@ -28,6 +28,8 @@ type Module interface {
 	ExportHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate)
 }
 
+// For command line startup
+// TODO::Container, cloud, blah blah blah
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
@@ -58,6 +60,7 @@ func main() {
 		S3ForcePathStyle:              aws.Bool(true),
 		Region:                        aws.String("us-east-2"), // us-east-2 is the destination bucket region
 	}
+
 	// Create service client value configured for credentials
 	// from assumed role.
 	// s3svc := s3.New(sess, awsConfigUsEast2)
@@ -70,15 +73,15 @@ func main() {
 		Logger: logger,
 	}
 
-	// Any module must fit the module definition of retreiving handlers,
-	// and generating a CLI
+	// Any module must implement the Module interface defined above
 	var bot []Module
 	c := cloud.NewCloud(cr, conf.GetValueMap())
 	c.GenerateCLI()
 
+	// Append modules here
 	bot = append(bot, c)
 
-	// Register the messageCreate func as a callback for MessageCreate events.
+	// Register modules handlers to discord bot
 	for _, mod := range bot {
 		for _, mod := range mod.ExportHandlers() {
 			d.AddHandler(mod)

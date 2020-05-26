@@ -28,17 +28,6 @@ func (cm *cloud) GenerateCLI() {
 
 	handlers := make(map[string]bot.Handler)
 
-	handlers["test"] = bot.Handler{
-		DiscordFn: cm.TestHandler,
-		ApiFn: func(c *cli.Context) error {
-			err := cm.Test(cm.r, c)
-			if err != nil {
-				return err
-			}
-			return nil
-		},
-	}
-
 	handlers["deploy"] = bot.Handler{
 		DiscordFn: cm.DeployHandler,
 		Flags: []cli.Flag{
@@ -46,7 +35,7 @@ func (cm *cloud) GenerateCLI() {
 			&stackNameFlag,
 		},
 		ApiFn: func(c *cli.Context) error {
-			err := cm.Deploy(cm.r, c)
+			err := cm.Deploy(cm.s, c)
 			if err != nil {
 				return err
 			}
@@ -61,7 +50,7 @@ func (cm *cloud) GenerateCLI() {
 			&stackNameFlag,
 		},
 		ApiFn: func(c *cli.Context) error {
-			err := cm.Update(cm.r, c)
+			err := cm.Update(cm.s, c)
 			if err != nil {
 				return err
 			}

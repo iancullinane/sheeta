@@ -7,32 +7,13 @@ import (
 	"github.com/iancullinane/sheeta/bot"
 )
 
-const (
-	bucketNameKey = "bucketName"
-	cloudRoleKey  = "cloudRole"
-)
-
 // ExportHandlers collects the available commands for a module for a CLI
 // to consume
 func (cm *cloud) ExportHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var h []func(s *discordgo.Session, m *discordgo.MessageCreate)
 	h = append(h, cm.DeployHandler)
 	h = append(h, cm.UpdateHandler)
-	h = append(h, cm.TestHandler)
 	return h
-}
-
-func (cm *cloud) TestHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// Just ignore certain cases like the bot mentioning itself
-	if !validateMsg(m.Author.ID, s.State.User.ID, m.Mentions) {
-		return
-	}
-
-	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
-	if msg[1] != "test" {
-		return
-	}
-	bot.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
 }
 
 // DeployHandler is a handler function for the 'deploy' command
@@ -88,6 +69,7 @@ func (cm *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 }
 
 func validateMsg(authorID string, userID string, mentions []*discordgo.User) bool {
+
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
 	if authorID == userID {
