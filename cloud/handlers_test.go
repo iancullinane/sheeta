@@ -42,13 +42,13 @@ func TestUnit_SubmitEvent(t *testing.T) {
 		{
 			Name: "success - message with app mention",
 			Session: &discordgo.Session{
-				// State.User.ID: "asdf",
 				State: &discordgo.State{
 					Ready: ready,
 				},
 			},
 			Message: &discordgo.MessageCreate{
 				&discordgo.Message{
+					Content: "cmd deploy something something",
 					Author: &discordgo.User{
 						ID: "CurrentUser",
 					},

@@ -1,6 +1,7 @@
 package cloud
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -21,6 +22,8 @@ func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 
 	// Just ignore certain cases like the bot mentioning itself
 	if !validateMsg(m.Author.ID, s.State.User.ID, m.Mentions) {
+		err := errors.New("Invalid message")
+		bot.SendErrorToUser(s, err, m.ChannelID, "Invalid message")
 		return
 	}
 

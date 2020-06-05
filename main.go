@@ -70,7 +70,6 @@ func main() {
 	cr := cloud.Services{
 		S3: s3svc,
 		CF: cfnSvc,
-		// Logger: logger,
 	}
 
 	// Any module must implement the Module interface defined above
