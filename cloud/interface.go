@@ -6,6 +6,7 @@ import (
 	cf "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/bwmarrin/discordgo"
 )
 
 //go:generate mockgen -package cloud -source=interface.go -destination interface_test.go
@@ -27,4 +28,9 @@ type S3Client interface {
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#S3.GetObject
 	// GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error)
 	Download(w io.WriterAt, input *s3.GetObjectInput, options ...func(*s3manager.Downloader)) (n int64, err error)
+}
+
+type Msngr interface {
+	SendErrorToUser(s *discordgo.Session, err error, channelID string, content string)
+	SendSuccessToUser(s *discordgo.Session, channelID string, content string)
 }

@@ -35,5 +35,6 @@ func (c *Config) BuildConfigFromFile(path string) *Config {
 
 // GetValueMap returns the loaded kv map from config
 func (c *Config) GetValueMap() map[string]string {
+	log.Println(c.KV)
 	return c.KV
 }

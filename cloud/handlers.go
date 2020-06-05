@@ -1,7 +1,6 @@
 package cloud
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -20,10 +19,11 @@ func (cm *cloud) ExportHandlers() []func(s *discordgo.Session, m *discordgo.Mess
 // DeployHandler is a handler function for the 'deploy' command
 func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
+	msngr := bot.NewMsngr()
+
 	// Just ignore certain cases like the bot mentioning itself
 	if !validateMsg(m.Author.ID, s.State.User.ID, m.Mentions) {
-		err := errors.New("Invalid message")
-		bot.SendErrorToUser(s, err, m.ChannelID, "Invalid message")
+		// err := errors.New("Invalid message")
 		return
 	}
 
@@ -34,16 +34,17 @@ func (cm *cloud) DeployHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 
 	err := cm.cliapp.Run(msg)
 	if err != nil {
-		bot.SendErrorToUser(s, err, m.ChannelID, "Deploy error")
+		msngr.SendErrorToUser(s, err, m.ChannelID, "Deploy error")
 		return
 	}
-	bot.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
+	msngr.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
 }
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
 func (cm *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
+	msngr := bot.NewMsngr()
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.State.User.ID {
@@ -64,11 +65,11 @@ func (cm *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 	// input validation only
 	err := cm.cliapp.Run(msg)
 	if err != nil {
-		bot.SendErrorToUser(s, err, m.ChannelID, "Update error")
+		msngr.SendErrorToUser(s, err, m.ChannelID, "Update error")
 		return
 	}
 
-	bot.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
+	msngr.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
 }
 
 func validateMsg(authorID string, userID string, mentions []*discordgo.User) bool {

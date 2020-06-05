@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -82,8 +83,8 @@ func main() {
 
 	// Register modules handlers to discord bot
 	for _, mod := range bot {
-		for _, mod := range mod.ExportHandlers() {
-			d.AddHandler(mod)
+		for _, handler := range mod.ExportHandlers() {
+			d.AddHandler(handler)
 		}
 	}
 
@@ -102,4 +103,9 @@ func main() {
 
 	// Cleanly close down the Discord session.
 	d.Close()
+}
+
+func prettyPrint(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	return string(s)
 }

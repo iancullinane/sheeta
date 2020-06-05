@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/urfave/cli/v2"
 
@@ -22,6 +23,8 @@ func (cm *cloud) Deploy(s Services, req *cli.Context) error {
 		cm.cfg[regionKey],
 		stack,
 	)
+
+	log.Println(stackTemplateURL)
 
 	sc := getStackConfig(env, stack, cm.cfg[bucketNameKey], cm.s.S3)
 
