@@ -1,6 +1,7 @@
 package cloud
 
 import (
+	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -52,6 +53,7 @@ func (cm *cloud) UpdateHandler(s *discordgo.Session, m *discordgo.MessageCreate)
 	}
 
 	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
+	log.Println(msg)
 	if msg[1] != "update" {
 		return
 	}

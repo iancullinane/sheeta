@@ -1,6 +1,10 @@
 package bot
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"log"
+
+	"github.com/bwmarrin/discordgo"
+)
 
 // SendSuccessToUser sends a simple 'Heard'
 func SendSuccessToUser(s *discordgo.Session, channelID string, content string) {
@@ -27,7 +31,15 @@ func SendErrorToUser(s *discordgo.Session, err error, channelID string, content 
 		Content: content,
 		Embed:   &errEmbed,
 	}
-	s.ChannelMessageSendComplex(channelID, &msgSend)
+
+	log.Println(errEmbed)
+	log.Println(&msgSend)
+
+	nmsg, err := s.ChannelMessageSendComplex(channelID, &msgSend)
+	if err != nil {
+		log.Println(nmsg)
+		log.Println("adasafhjasbfkab")
+	}
 }
 
 // EmbedErrorMsg sends an embedded message with a red styled edge

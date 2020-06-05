@@ -7,6 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/iancullinane/sheeta/bot"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -22,12 +24,6 @@ var (
 	Token string
 )
 
-// Module is an independent set of actions containing its cli and handlers
-type Module interface {
-	GenerateCLI()
-	ExportHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate)
-}
-
 // For command line startup
 // TODO::Container, cloud, blah blah blah
 func init() {
@@ -42,18 +38,15 @@ func main() {
 	logger.Level = logrus.InfoLevel
 	logger.Out = os.Stdout
 
-	// Set up config
+	// Set up from local config file
 	var conf *config.Config
 	conf = conf.BuildConfigFromFile("./config/base.yaml")
 
-	// Create a new Discord session using the provided bot token.
-	d, err := discordgo.New("Bot " + Token)
-	if err != nil {
-		logger.Fatalf("Could not start bot: %s", err)
-	}
-
+	//
+	// Set up AWS clients
+	// TODO::Modules select their own clients
+	//
 	sess := session.Must(session.NewSession())
-
 	// AWS config for client creation
 	awsConfigUsEast2 := &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
@@ -67,25 +60,37 @@ func main() {
 	s3svc := s3manager.NewDownloader(sess)
 	cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
 
-	cr := cloud.Resources{
-		S3:     s3svc,
-		CF:     cfnSvc,
-		Logger: logger,
+	// Wrapper for cloud clients
+	cr := cloud.Services{
+		S3: s3svc,
+		CF: cfnSvc,
 	}
 
-	// Any module must implement the Module interface defined above
-	var bot []Module
+	// Create a new Discord session using the provided bot token.
+	d, err := discordgo.New("Bot " + Token)
+	if err != nil {
+		logger.Fatalf("Could not start bot: %s", err)
+	}
+
+	// Initialize a cloud module
 	c := cloud.NewCloud(cr, conf.GetValueMap())
 	c.GenerateCLI()
 
-	// Append modules here
-	bot = append(bot, c)
+	// Add the bot and a module
+	b := bot.NewBot()
+	b.AddModule(c)
 
 	// Register modules handlers to discord bot
-	for _, mod := range bot {
-		for _, mod := range mod.ExportHandlers() {
-			d.AddHandler(mod)
+	for _, m := range b.GetModules() {
+		for _, h := range m.ExportHandlers() {
+			d.AddHandler(h)
 		}
+	}
+
+	// Create a new Discord session using the provided bot token.
+	d, err = discordgo.New("Bot " + Token)
+	if err != nil {
+		logger.Fatalf("Could not start bot: %s", err)
 	}
 
 	// Open a websocket connection to Discord and begin listening.

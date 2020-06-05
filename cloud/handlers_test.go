@@ -15,7 +15,14 @@ func TestUnit_SubmitEvent(t *testing.T) {
 		},
 	}
 
+	sesh := &discordgo.Session{
+		State: &discordgo.State{
+			Ready: ready,
+		},
+	}
+
 	type Resources struct {
+		mockBot *MockBot
 		mockS3  *MockS3Client
 		mockCfn *MockCFClient
 		logger  *MockLogger
@@ -25,6 +32,7 @@ func TestUnit_SubmitEvent(t *testing.T) {
 		ctrl := gomock.NewController(t)
 
 		r := Resources{
+			mockBot: NewMockBot(ctrl),
 			mockS3:  NewMockS3Client(ctrl),
 			mockCfn: NewMockCFClient(ctrl),
 			logger:  NewMockLogger(ctrl),
@@ -42,25 +50,27 @@ func TestUnit_SubmitEvent(t *testing.T) {
 		{
 			Name: "success - message with app mention",
 			Session: &discordgo.Session{
-				// State.User.ID: "asdf",
 				State: &discordgo.State{
 					Ready: ready,
 				},
 			},
 			Message: &discordgo.MessageCreate{
 				&discordgo.Message{
+					Content:   "value cloud deploy lies",
+					ChannelID: "test_channel",
 					Author: &discordgo.User{
 						ID: "CurrentUser",
 					},
 					Mentions: []*discordgo.User{
 						&discordgo.User{
-							ID: "SheetaID",
+							ID:       "SheetaID",
+							Username: "sheeta",
 						},
 					},
 				},
 			},
 			Setup: func(r Resources) {
-				// r.userStorage.EXPECT().GetGitHubKey("User1").Return("API123", nil)
+				r.mockBot.EXPECT().SendErrorToUser(sesh, gomock.Any(), gomock.Any(), gomock.Any())
 			},
 		},
 	} {
@@ -77,6 +87,7 @@ func TestUnit_SubmitEvent(t *testing.T) {
 			}
 
 			c := NewCloud(services, map[string]string{})
+			c.GenerateCLI()
 			c.DeployHandler(tc.Session, tc.Message)
 
 		})

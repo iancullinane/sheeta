@@ -79,6 +79,8 @@ func buildCreateRequest(cr *cf.CreateStackInput, rcfg map[string]interface{}, ta
 		})
 	}
 
+	log.Printf("%#v", cr)
+
 }
 
 func buildUpdateRequest(cr *cf.UpdateStackInput, rcfg map[string]interface{}, tags map[string]string) {
