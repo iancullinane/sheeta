@@ -1,8 +1,6 @@
 package cloud
 
 import (
-	"fmt"
-
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/bot"
 	"github.com/urfave/cli/v2"
@@ -29,7 +27,7 @@ func (cm *cloud) GenerateCLI() {
 	handlers := make(map[string]bot.Handler)
 
 	handlers["deploy"] = bot.Handler{
-		DiscordFn: cm.DeployHandler,
+		DiscordFn: cm.Handler,
 		Flags: []cli.Flag{
 			&templateFlag,
 			&stackNameFlag,
@@ -44,7 +42,7 @@ func (cm *cloud) GenerateCLI() {
 	}
 
 	handlers["update"] = bot.Handler{
-		DiscordFn: cm.UpdateHandler,
+		DiscordFn: cm.Handler,
 		Flags: []cli.Flag{
 			&templateFlag,
 			&stackNameFlag,
@@ -64,10 +62,14 @@ func (cm *cloud) GenerateCLI() {
 	}
 
 	newCLI := cm.buildCLI(handlers)
-	cm.cliapp = &newCLI
+	newCLI.HideHelp = true
+	newCLI.HideHelpCommand = true
+
+	cm.cliapp = newCLI
+
 }
 
-func (cm *cloud) buildCLI(handlers map[string]bot.Handler) cli.App {
+func (cm *cloud) buildCLI(handlers map[string]bot.Handler) *cli.App {
 
 	var tmpCLI cli.App
 	var cmds []*cli.Command
@@ -75,14 +77,10 @@ func (cm *cloud) buildCLI(handlers map[string]bot.Handler) cli.App {
 		cmds = append(cmds, cm.buildCmd(k, "", hand))
 	}
 	tmpCLI.Commands = cmds
-
-	tmpCLI.Action = func(c *cli.Context) error {
-		return fmt.Errorf("Not a valid command")
-	}
-
-	tmpCLI.Name = "cloud"
 	tmpCLI.HideHelp = true
-	return tmpCLI
+	tmpCLI.HideHelpCommand = true
+	tmpCLI.CustomAppHelpTemplate = ""
+	return &tmpCLI
 }
 
 func (cm *cloud) buildCmd(name, usage string, handler bot.Handler) *cli.Command {

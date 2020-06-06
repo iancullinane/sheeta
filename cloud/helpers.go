@@ -51,13 +51,11 @@ func getStackConfig(env, stack, bucketName string, s3c S3Client) *StackConfig {
 		}
 
 		// use the name from the config
-		n := sc.Name
-		sc.Name = fmt.Sprintf("%s-%s", n, env)
+		sc.Name = fmt.Sprintf("%s", stack)
 		return &sc
 	}
 
 	sc.Name = fmt.Sprintf("%s-%s", env, strings.Replace(stack, "/", "-", -1))
-
 	return &sc
 }
 

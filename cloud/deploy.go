@@ -18,13 +18,14 @@ func (cm *cloud) Deploy(s Services, req *cli.Context) error {
 	env := req.String("env")
 	stack := req.String("stack")
 
+	log.Println(env)
+	log.Println(stack)
+
 	stackTemplateURL := fmt.Sprintf("https://%s.s3-%s.amazonaws.com/templates/%s.yaml",
 		cm.cfg[bucketNameKey],
 		cm.cfg[regionKey],
 		stack,
 	)
-
-	log.Println(stackTemplateURL)
 
 	sc := getStackConfig(env, stack, cm.cfg[bucketNameKey], cm.s.S3)
 
@@ -40,7 +41,6 @@ func (cm *cloud) Deploy(s Services, req *cli.Context) error {
 	}
 
 	buildCreateRequest(&cr, sc.CloudConfig, sc.Tags)
-
 	_, err := cm.s.CF.CreateStack(&cr)
 	if aerr, ok := err.(awserr.Error); ok {
 		return fmt.Errorf("Create Stack Request: %s", aerr)
