@@ -28,8 +28,7 @@ func (cm *cloud) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
 	if msg[0] != moduleName {
-		err := errors.New("Invalid command")
-		bot.SendErrorToUser(s, err, m.ChannelID, "CLI error")
+		bot.SendErrorToUser(s, errors.New("Invalid command"), m.ChannelID, "CLI error")
 		return
 	}
 
@@ -38,7 +37,7 @@ func (cm *cloud) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if msg[1] == "update" {
-		cm.DeployHandler(msg, s, m)
+		cm.UpdateHandler(msg, s, m)
 	}
 
 }

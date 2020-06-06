@@ -54,7 +54,6 @@ func main() {
 	}
 
 	sess := session.Must(session.NewSession())
-
 	// AWS config for client creation
 	awsConfigUsEast2 := &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
@@ -64,10 +63,10 @@ func main() {
 
 	// Create service client value configured for credentials
 	// from assumed role.
-	// s3svc := s3.New(sess, awsConfigUsEast2)
 	s3svc := s3manager.NewDownloader(sess)
 	cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
 
+	// This effectively defines what aws services are available
 	cr := cloud.Services{
 		S3: s3svc,
 		CF: cfnSvc,

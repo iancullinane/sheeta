@@ -94,7 +94,7 @@ func TestUnit_SubmitEvent(t *testing.T) {
 		Setup func(r Resources)
 	}{
 		{
-			Name:    "success - message with app mention",
+			Name:    "deploy handler test",
 			Session: sesh,
 			Message: msg,
 			Setup: func(r Resources) {
