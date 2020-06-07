@@ -67,6 +67,8 @@ func main() {
 	cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
 
 	// This effectively defines what aws services are available
+	// TODO::I want to move this into its module, but it causes tests to break
+	// because of a region error related to the credential chain
 	cr := cloud.Services{
 		S3: s3svc,
 		CF: cfnSvc,

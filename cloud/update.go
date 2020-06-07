@@ -12,6 +12,7 @@ import (
 
 func (cm *cloud) Update(s Services, req *cli.Context) error {
 
+	// These values are derived via the cli library
 	env := req.String("env")
 	stack := req.String("stack")
 
