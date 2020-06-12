@@ -2,7 +2,6 @@ package cloud
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/urfave/cli/v2"
 
@@ -17,9 +16,6 @@ func (cm *cloud) Deploy(s Services, req *cli.Context) error {
 	// `--env` in discord
 	env := req.String("env")
 	stack := req.String("stack")
-
-	log.Println(env)
-	log.Println(stack)
 
 	stackTemplateURL := fmt.Sprintf("https://%s.s3-%s.amazonaws.com/templates/%s.yaml",
 		cm.cfg[bucketNameKey],
@@ -41,6 +37,10 @@ func (cm *cloud) Deploy(s Services, req *cli.Context) error {
 	}
 
 	buildCreateRequest(&cr, sc.CloudConfig, sc.Tags)
+
+	// os.Exit(1)
+	// log.Printf("%#v", cr)
+
 	_, err := cm.s.CF.CreateStack(&cr)
 	if aerr, ok := err.(awserr.Error); ok {
 		return fmt.Errorf("Create Stack Request: %s", aerr)

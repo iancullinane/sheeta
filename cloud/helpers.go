@@ -43,15 +43,14 @@ func getStackConfig(env, stack, bucketName string, s3c S3Client) *StackConfig {
 	// we need to remove slashes for StackNameParameter compatibility
 	sc := StackConfig{}
 	if dl > 0 {
+		log.Println("Stack config found in S3")
 		err = yaml.Unmarshal(buf.Bytes(), &sc)
 		if err != nil {
 			// We don't need to fail here because not every stack has a config
 			log.Println(err)
 			return nil
 		}
-
-		// use the name from the config
-		sc.Name = fmt.Sprintf("%s", stack)
+		log.Printf("%#v", sc)
 		return &sc
 	}
 

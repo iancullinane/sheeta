@@ -1,6 +1,7 @@
 package cloud
 
 import (
+	"github.com/iancullinane/sheeta/bot"
 	"github.com/urfave/cli/v2"
 )
 
@@ -19,8 +20,12 @@ type cloud struct {
 
 // NewCloud returns a new cloud client which implements the Module interface
 func NewCloud(s Services, cfg map[string]string) *cloud {
-	return &cloud{
+
+	c := cloud{
 		s:   s,
 		cfg: cfg,
 	}
+
+	c.cliapp = bot.GenerateCLI(c.ExportCommands())
+	return &c
 }

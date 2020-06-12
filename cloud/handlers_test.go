@@ -45,7 +45,7 @@ func TestUnit_SubmitEvent(t *testing.T) {
 	cfnInput := cloudformation.CreateStackInput{
 		Capabilities: []*string{aws.String("CAPABILITY_AUTO_EXPAND"), aws.String("CAPABILITY_NAMED_IAM")},
 		RoleARN:      aws.String("arn:aws:iam::123456789:role/chat-ops-role"),
-		StackName:    aws.String("test-stack"),
+		StackName:    aws.String("dev-test-stack"),
 		TemplateURL:  aws.String("https://bucket_name.s3-us-east-2.amazonaws.com/templates/test-stack.yaml"),
 	}
 
@@ -94,11 +94,11 @@ func TestUnit_SubmitEvent(t *testing.T) {
 		Setup func(r Resources)
 	}{
 		{
-			Name:    "deploy handler test",
+			Name:    "deploy - no existing config",
 			Session: sesh,
 			Message: msg,
 			Setup: func(r Resources) {
-				r.mockS3.EXPECT().Download(gomock.Any(), &configInput).Return(*aws.Int64(100), nil)
+				r.mockS3.EXPECT().Download(gomock.Any(), &configInput).Return(*aws.Int64(0), nil)
 				r.mockCfn.EXPECT().CreateStack(&cfnInput).Return(nil, nil)
 			},
 		},
@@ -116,7 +116,6 @@ func TestUnit_SubmitEvent(t *testing.T) {
 			}
 
 			c := NewCloud(services, config)
-			c.GenerateCLI()
 			c.Handler(tc.Session, tc.Message)
 
 		})

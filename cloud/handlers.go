@@ -6,18 +6,68 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/bot"
+	"github.com/urfave/cli/v2"
 )
 
 const (
 	moduleName = "cloud"
 )
 
-// ExportHandlers collects the available commands for a module for a CLI
-// to consume
-func (cm *cloud) ExportHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate) {
-	var h []func(s *discordgo.Session, m *discordgo.MessageCreate)
-	h = append(h, cm.Handler)
-	return h
+var (
+	stackNameFlag = cli.StringFlag{
+		Name:     "env",
+		Usage:    "ENV to deploy into",
+		Required: true,
+	}
+
+	templateFlag = cli.StringFlag{
+		Name:     "stack",
+		Usage:    "Name fo the template stack yaml",
+		Required: true,
+	}
+)
+
+func (cm *cloud) ExportHandler() func(s *discordgo.Session, m *discordgo.MessageCreate) {
+	return cm.Handler
+}
+
+func (cm *cloud) ExportCommands() []bot.Command {
+
+	var r []bot.Command
+
+	r = append(r, bot.Command{
+		Name: "deploy",
+		Flags: []cli.Flag{
+			&templateFlag,
+			&stackNameFlag,
+		},
+		DiscordFn: cm.Handler,
+		APIFn: func(c *cli.Context) error {
+			err := cm.Deploy(cm.s, c)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	})
+
+	r = append(r, bot.Command{
+		Name: "update",
+		Flags: []cli.Flag{
+			&templateFlag,
+			&stackNameFlag,
+		},
+		DiscordFn: cm.Handler,
+		APIFn: func(c *cli.Context) error {
+			err := cm.Update(cm.s, c)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	})
+
+	return r
 }
 
 func (cm *cloud) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {

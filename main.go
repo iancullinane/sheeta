@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/bot"
 	"github.com/iancullinane/sheeta/cloud"
 	"github.com/iancullinane/sheeta/config"
 	"github.com/sirupsen/logrus"
@@ -22,12 +22,6 @@ import (
 var (
 	Token string
 )
-
-// Module is an independent set of actions containing its cli and handlers
-type Module interface {
-	GenerateCLI()
-	ExportHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate)
-}
 
 // For command line startup
 // TODO::Container, cloud, blah blah blah
@@ -74,19 +68,13 @@ func main() {
 		CF: cfnSvc,
 	}
 
-	// Any module must implement the Module interface defined above
-	var bot []Module
+	var bot []bot.Module
 	c := cloud.NewCloud(cr, conf.GetValueMap())
-	c.GenerateCLI()
-
-	// Append modules here
 	bot = append(bot, c)
 
 	// Register modules handlers to discord bot
 	for _, mod := range bot {
-		for _, handler := range mod.ExportHandlers() {
-			d.AddHandler(handler)
-		}
+		d.AddHandler(mod.ExportHandler())
 	}
 
 	// Open a websocket connection to Discord and begin listening.
@@ -104,9 +92,4 @@ func main() {
 
 	// Cleanly close down the Discord session.
 	d.Close()
-}
-
-func prettyPrint(i interface{}) string {
-	s, _ := json.MarshalIndent(i, "", "\t")
-	return string(s)
 }
