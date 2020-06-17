@@ -1,27 +1,31 @@
 package cloud
 
 import (
+	"github.com/iancullinane/sheeta/bot"
 	"github.com/urfave/cli/v2"
 )
 
+// Config keys for this package
+const (
+	bucketNameKey = "bucketName"
+	cloudRoleKey  = "cloudRole"
+	regionKey     = "region"
+)
+
 type cloud struct {
-	r      Resources
+	s      Services
 	cfg    map[string]string
 	cliapp *cli.App
 }
 
-// Resources are API's needed to execute a task
-type Resources struct {
-	S3     S3Client
-	CF     CFClient
-	Logger Logger
-}
+// NewCloud returns a new cloud client which implements the Module interface
+func NewCloud(s Services, cfg map[string]string) *cloud {
 
-// NewCloud returns a new cloud client
-func NewCloud(r Resources, cfg map[string]string) *cloud {
-
-	return &cloud{
-		r:   r,
+	c := cloud{
+		s:   s,
 		cfg: cfg,
 	}
+
+	c.cliapp = bot.GenerateCLI(c.ExportCommands())
+	return &c
 }

@@ -2,74 +2,46 @@ package cloud
 
 import (
 	"fmt"
-	"log"
-	"strings"
 
 	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v2"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	cf "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func (cm *cloud) Deploy(r Resources, req *cli.Context) error {
+func (cm *cloud) Deploy(s Services, req *cli.Context) error {
 
+	// The req here is the cli app context, these would be keys you set via
+	// `--env` in discord
 	env := req.String("env")
 	stack := req.String("stack")
 
-	// TODO::Move to config
-	templateURL := fmt.Sprintf("https://craft-cf-bucket.s3-us-east-2.amazonaws.com/templates/%s.yaml", stack)
+	stackTemplateURL := fmt.Sprintf("https://%s.s3-%s.amazonaws.com/templates/%s.yaml",
+		cm.cfg[bucketNameKey],
+		cm.cfg[regionKey],
+		stack,
+	)
 
-	input := s3.GetObjectInput{
-		Bucket: aws.String(cm.cfg[bucketNameKey]),
-		Key:    aws.String(fmt.Sprintf("env/%s/%s.yaml", env, stack)),
-	}
-
-	buf := aws.NewWriteAtBuffer([]byte{})
-	dl, err := cm.r.S3.Download(buf, &input)
-	if aerr, ok := err.(awserr.Error); ok {
-		log.Printf("Error fetching key: %s", aerr)
-	}
-
-	sc := StackConfig{}
-	if dl > 0 {
-		err = yaml.Unmarshal(buf.Bytes(), &sc)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	// Have to do this anyway to deal with slashes
-	sc.Name = fmt.Sprintf("%s-%s", env, strings.Replace(stack, "/", "-", -1))
-	log.Println(sc.Name)
+	sc := getStackConfig(env, stack, cm.cfg[bucketNameKey], cm.s.S3)
 
 	cr := cf.CreateStackInput{
 		RoleARN:     aws.String(cm.cfg[cloudRoleKey]),
 		StackName:   aws.String(sc.Name),
-		TemplateURL: aws.String(templateURL),
+		TemplateURL: aws.String(stackTemplateURL),
 		Capabilities: []*string{
+			// TODO::Move to config/flag
 			aws.String("CAPABILITY_AUTO_EXPAND"),
 			aws.String("CAPABILITY_NAMED_IAM"),
 		},
 	}
 
-	for k, v := range sc.CloudConfig {
-		cr.Parameters = append(cr.Parameters, &cf.Parameter{
-			ParameterKey:   aws.String(k),
-			ParameterValue: aws.String(v.(string)),
-		})
-	}
+	buildCreateRequest(&cr, sc.CloudConfig, sc.Tags)
 
-	for k, v := range sc.Tags {
-		cr.Tags = append(cr.Tags, &cf.Tag{
-			Key:   aws.String(k),
-			Value: aws.String(v),
-		})
-	}
+	// os.Exit(1)
+	// log.Printf("%#v", cr)
 
-	_, err = cm.r.CF.CreateStack(&cr)
+	_, err := cm.s.CF.CreateStack(&cr)
 	if aerr, ok := err.(awserr.Error); ok {
 		return fmt.Errorf("Create Stack Request: %s", aerr)
 	}

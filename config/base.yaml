@@ -1,0 +1,7 @@
+environment: dev
+name: sheeta
+kv:
+  bucketName: craft-cf-bucket
+  cloudRole: arn:aws:iam::346096930733:role/chat-ops-role
+  region: us-east-2
+  # cloudRole: arn:aws:iam::346096930733:role/dev-roles-cloud-role-CloudFormationRole-13RRM8LH6E5K5

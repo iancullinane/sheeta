@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/bot"
 	"github.com/iancullinane/sheeta/cloud"
 	"github.com/iancullinane/sheeta/config"
 	"github.com/sirupsen/logrus"
@@ -22,12 +23,8 @@ var (
 	Token string
 )
 
-// Module is an independent set of actions containing its cli and handlers
-type Module interface {
-	GenerateCLI()
-	ExportHandlers() []func(s *discordgo.Session, m *discordgo.MessageCreate)
-}
-
+// For command line startup
+// TODO::Container, cloud, blah blah blah
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
@@ -51,38 +48,33 @@ func main() {
 	}
 
 	sess := session.Must(session.NewSession())
-
 	// AWS config for client creation
 	awsConfigUsEast2 := &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		S3ForcePathStyle:              aws.Bool(true),
 		Region:                        aws.String("us-east-2"), // us-east-2 is the destination bucket region
 	}
+
 	// Create service client value configured for credentials
 	// from assumed role.
-	// s3svc := s3.New(sess, awsConfigUsEast2)
 	s3svc := s3manager.NewDownloader(sess)
 	cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
 
-	cr := cloud.Resources{
-		S3:     s3svc,
-		CF:     cfnSvc,
-		Logger: logger,
+	// This effectively defines what aws services are available
+	// TODO::I want to move this into its module, but it causes tests to break
+	// because of a region error related to the credential chain
+	cr := cloud.Services{
+		S3: s3svc,
+		CF: cfnSvc,
 	}
 
-	// Any module must fit the module definition of retreiving handlers,
-	// and generating a CLI
-	var bot []Module
+	var bot []bot.Module
 	c := cloud.NewCloud(cr, conf.GetValueMap())
-	c.GenerateCLI()
-
 	bot = append(bot, c)
 
-	// Register the messageCreate func as a callback for MessageCreate events.
+	// Register modules handlers to discord bot
 	for _, mod := range bot {
-		for _, mod := range mod.ExportHandlers() {
-			d.AddHandler(mod)
-		}
+		d.AddHandler(mod.ExportHandler())
 	}
 
 	// Open a websocket connection to Discord and begin listening.

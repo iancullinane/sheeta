@@ -5,9 +5,16 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Handler is the function definition and its flags
-type Handler struct {
-	ApiFn     func(c *cli.Context) error
+// Module is an independent set of actions containing its cli and handlers
+type Module interface {
+	ExportCommands() []Command
+	ExportHandler() func(s *discordgo.Session, m *discordgo.MessageCreate)
+}
+
+// Command is the function definition and its flags
+type Command struct {
+	Name      string
+	APIFn     func(c *cli.Context) error
 	DiscordFn func(s *discordgo.Session, m *discordgo.MessageCreate)
 	Flags     []cli.Flag
 }

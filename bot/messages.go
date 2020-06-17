@@ -1,6 +1,16 @@
 package bot
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/bwmarrin/discordgo"
+)
+
+// // Msngr is a helper
+// type Msngr struct{}
+
+// // NewMsngr is basically a factory
+// func NewMsngr() *Msngr {
+// 	return &Msngr{}
+// }
 
 // SendSuccessToUser sends a simple 'Heard'
 func SendSuccessToUser(s *discordgo.Session, channelID string, content string) {
