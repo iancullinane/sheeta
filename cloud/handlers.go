@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"errors"
+	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -83,6 +84,7 @@ func (cm *cloud) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if msg[1] == "deploy" {
+		log.Println("Thing happened")
 		cm.DeployHandler(msg, s, m)
 	}
 
