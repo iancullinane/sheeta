@@ -18,8 +18,9 @@ func SendSuccessToUser(s *discordgo.Session, channelID string, content string) {
 	me.Color = 119911
 	me.Fields = []*discordgo.MessageEmbedField{
 		&discordgo.MessageEmbedField{
-			Name:  ":)",
-			Value: content,
+			Name:   ":)",
+			Value:  content,
+			Inline: false,
 		},
 	}
 	msgSend := discordgo.MessageSend{

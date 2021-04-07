@@ -14,6 +14,7 @@ const (
 	moduleName = "cloud"
 )
 
+// Declare all possible flags and compose them in ExportCommands
 var (
 	stackNameFlag = cli.StringFlag{
 		Name:     "env",
@@ -32,11 +33,13 @@ func (cm *cloud) ExportHandler() func(s *discordgo.Session, m *discordgo.Message
 	return cm.Handler
 }
 
-func (cm *cloud) ExportCommands() []bot.Command {
+func (cm *cloud) ExportCommands() []bot.Action {
 
-	var r []bot.Command
+	// A command has a APIFn and a DiscordFn. The API function is for doing
+	// "real" work and the DiscordFn is for communication
+	var r []bot.Action
 
-	r = append(r, bot.Command{
+	r = append(r, bot.Action{
 		Name: "deploy",
 		Flags: []cli.Flag{
 			&templateFlag,
@@ -52,7 +55,7 @@ func (cm *cloud) ExportCommands() []bot.Command {
 		},
 	})
 
-	r = append(r, bot.Command{
+	r = append(r, bot.Action{
 		Name: "update",
 		Flags: []cli.Flag{
 			&templateFlag,
@@ -73,7 +76,7 @@ func (cm *cloud) ExportCommands() []bot.Command {
 
 func (cm *cloud) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Just ignore certain cases like the bot mentioning itself
-	if !validateMsg(m.Author.ID, s.State.User.ID, m.Mentions) {
+	if !bot.ValidateMsg(m.Author.ID, s.State.User.ID, m.Mentions) {
 		return
 	}
 
@@ -85,17 +88,17 @@ func (cm *cloud) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if msg[1] == "deploy" {
 		log.Println("Thing happened")
-		cm.DeployHandler(msg, s, m)
+		cm.deployHandler(msg, s, m)
 	}
 
 	if msg[1] == "update" {
-		cm.UpdateHandler(msg, s, m)
+		cm.updateHandler(msg, s, m)
 	}
 
 }
 
 // DeployHandler is a handler function for the 'deploy' command
-func (cm *cloud) DeployHandler(msg []string, s *discordgo.Session, m *discordgo.MessageCreate) {
+func (cm *cloud) deployHandler(msg []string, s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// This will call the ApiFn method attached to the deploy string
 	err := cm.cliapp.Run(msg)
@@ -108,7 +111,7 @@ func (cm *cloud) DeployHandler(msg []string, s *discordgo.Session, m *discordgo.
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
-func (cm *cloud) UpdateHandler(msg []string, s *discordgo.Session, m *discordgo.MessageCreate) {
+func (cm *cloud) updateHandler(msg []string, s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// TODO::I think think there is a better way to leverage the run function
 	// of the cli library, but right now I think it is fine to use it for
@@ -120,19 +123,4 @@ func (cm *cloud) UpdateHandler(msg []string, s *discordgo.Session, m *discordgo.
 	}
 
 	bot.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
-}
-
-func validateMsg(authorID string, userID string, mentions []*discordgo.User) bool {
-
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
-	if authorID == userID {
-		return false
-	}
-
-	if !containsUser(mentions, "sheeta") {
-		return false
-	}
-
-	return true
 }

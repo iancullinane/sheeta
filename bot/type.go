@@ -7,12 +7,12 @@ import (
 
 // Module is an independent set of actions containing its cli and handlers
 type Module interface {
-	ExportCommands() []Command
+	ExportCommands() []Action
 	ExportHandler() func(s *discordgo.Session, m *discordgo.MessageCreate)
 }
 
-// Command is the function definition and its flags
-type Command struct {
+// Action is the function definition and its flags
+type Action struct {
 	Name      string
 	APIFn     func(c *cli.Context) error
 	DiscordFn func(s *discordgo.Session, m *discordgo.MessageCreate)
