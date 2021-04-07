@@ -12,33 +12,33 @@ func prettyPrint(i interface{}) string {
 }
 
 // GenerateCLI returns a CLI app to be used for interpreting chatops
-func GenerateCLI(handlers []Command) *cli.App {
+func GenerateCLI(actions []Action) *cli.App {
 
-	newCLI := buildCLI(handlers)
+	newCLI := buildCLI(actions)
 	newCLI.HideHelp = true
 	newCLI.HideHelpCommand = true
 
 	return newCLI
 }
 
-func buildCLI(handlers []Command) *cli.App {
+func buildCLI(actions []Action) *cli.App {
 
 	var tmpCLI cli.App
 	var cmds []*cli.Command
-	for _, hand := range handlers {
+	for _, hand := range actions {
 		cmds = append(cmds, buildCmd(hand, ""))
 	}
 	tmpCLI.Commands = cmds
 	return &tmpCLI
 }
 
-func buildCmd(handler Command, usage string) *cli.Command {
+func buildCmd(a Action, usage string) *cli.Command {
 
 	c := cli.Command{
-		Name:            handler.Name,
+		Name:            a.Name,
 		Usage:           usage,
-		Flags:           handler.Flags,
-		Action:          handler.APIFn,
+		Flags:           a.Flags,
+		Action:          a.APIFn,
 		HideHelp:        true,
 		HideHelpCommand: true,
 	}

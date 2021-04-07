@@ -9,18 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	cf "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/bwmarrin/discordgo"
 	"gopkg.in/yaml.v2"
 )
-
-func containsUser(s []*discordgo.User, e string) bool {
-	for _, a := range s {
-		if a.Username == e {
-			return true
-		}
-	}
-	return false
-}
 
 // getStackConfig gets a matching config from s3 matching the environment
 // called when the user entered the `--env` flag

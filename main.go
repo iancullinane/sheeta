@@ -41,12 +41,6 @@ func main() {
 	var conf *config.Config
 	conf = conf.BuildConfigFromFile("./config/base.yaml")
 
-	// Create a new Discord session using the provided bot token.
-	d, err := discordgo.New("Bot " + Token)
-	if err != nil {
-		logger.Fatalf("Could not start bot: %s", err)
-	}
-
 	sess := session.Must(session.NewSession())
 	// AWS config for client creation
 	awsConfigUsEast2 := &aws.Config{
@@ -71,6 +65,12 @@ func main() {
 	var bot []bot.Module
 	c := cloud.NewCloud(cr, conf.GetValueMap())
 	bot = append(bot, c)
+
+	// Create a new Discord session using the provided bot token.
+	d, err := discordgo.New("Bot " + Token)
+	if err != nil {
+		logger.Fatalf("Could not start bot: %s", err)
+	}
 
 	// Register modules handlers to discord bot
 	for _, mod := range bot {
