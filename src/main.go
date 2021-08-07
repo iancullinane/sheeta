@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,9 +13,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/bwmarrin/discordgo"
-	"github.com/iancullinane/sheeta/bot"
-	"github.com/iancullinane/sheeta/cloud"
-	"github.com/iancullinane/sheeta/config"
+	"github.com/iancullinane/sheeta/src/config"
+	"github.com/iancullinane/sheeta/src/internal/bot"
+	"github.com/iancullinane/sheeta/src/internal/cloud"
 	"github.com/sirupsen/logrus"
 )
 
@@ -39,7 +40,8 @@ func main() {
 
 	// Set up config
 	var conf *config.Config
-	conf = conf.BuildConfigFromFile("./config/base.yaml")
+	conf = conf.BuildConfigFromFile("./src/config/base.yaml")
+	log.Println("Wrote config")
 
 	sess := session.Must(session.NewSession())
 	// AWS config for client creation

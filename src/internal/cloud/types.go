@@ -1,7 +1,7 @@
 package cloud
 
 import (
-	"github.com/iancullinane/sheeta/bot"
+	"github.com/iancullinane/sheeta/src/internal/bot"
 	"github.com/urfave/cli/v2"
 )
 
