@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/iancullinane/sheeta/bot"
+	"github.com/iancullinane/sheeta/src/internal/bot"
 	"github.com/urfave/cli/v2"
 )
 

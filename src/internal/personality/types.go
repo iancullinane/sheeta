@@ -1,26 +1,28 @@
 package cloud
 
-import (
-	"github.com/iancullinane/sheeta/bot"
-	"github.com/urfave/cli/v2"
-)
+import "github.com/urfave/cli"
 
-// Config keys for this package
-const (
-	bucketNameKey = "bucketName"
-	cloudRoleKey  = "cloudRole"
-	regionKey     = "region"
-)
+// import (
+// 	"github.com/iancullinane/sheeta/internal/bot"
+// 	"github.com/urfave/cli/v2"
+// )
+
+// // Config keys for this package
+// const (
+// 	bucketNameKey = "bucketName"
+// 	cloudRoleKey  = "cloudRole"
+// 	regionKey     = "region"
+// )
 
 type prisoner struct {
 	cliapp *cli.App
 }
 
-// NewCloud returns a new cloud client which implements the Module interface
-func NewPrisoner() *prisoner {
+// // NewCloud returns a new cloud client which implements the Module interface
+// func NewPrisoner() *prisoner {
 
-	p := prisoner{}
+// 	p := prisoner{}
 
-	p.cliapp = bot.GenerateCLI(p.ExportCommands())
-	return &p
-}
+// 	p.cliapp = bot.GenerateCLI(p.ExportCommands())
+// 	return &p
+// }

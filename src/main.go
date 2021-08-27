@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -41,7 +40,6 @@ func main() {
 	// Set up config
 	var conf *config.Config
 	conf = conf.BuildConfigFromFile("./src/config/base.yaml")
-	log.Println("Wrote config")
 
 	sess := session.Must(session.NewSession())
 	// AWS config for client creation
