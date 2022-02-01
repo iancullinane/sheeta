@@ -2,7 +2,6 @@ package cloud
 
 import (
 	"errors"
-	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -81,13 +80,18 @@ func (cm *cloud) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
+
+	if len(msg) <= 1 {
+		bot.SendErrorToUser(s, errors.New("no command tho?"), m.ChannelID, "CLI error")
+		return
+	}
+
 	if msg[0] != moduleName {
-		bot.SendErrorToUser(s, errors.New("Invalid command"), m.ChannelID, "CLI error")
+		bot.SendErrorToUser(s, errors.New("invalid command"), m.ChannelID, "CLI error")
 		return
 	}
 
 	if msg[1] == "deploy" {
-		log.Println("Thing happened")
 		cm.deployHandler(msg, s, m)
 	}
 
