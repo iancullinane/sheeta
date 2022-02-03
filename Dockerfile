@@ -2,7 +2,7 @@
 FROM scratch
 
 # Copy the binary into the container
-ADD bin/sheeta /sheeta
+ADD bin/main /main
 
 # The service listens on these ports
 EXPOSE 8080
