@@ -8,13 +8,24 @@ steps:
     commands:
       - ./build/build.sh
 
-  - name: docker push
-    image: plugins/docker
-    settings:
-      repo: eignhpants/sheeta
-      username:
-        from_secret: dh_user_name
-      password:
-        from_secret: dh_pw
-    publish:
-      image: eignhpants/sheeta
+  # - name: docker push
+  #   image: plugins/docker
+  #   settings:
+  #     repo: eignhpants/sheeta
+  #     username:
+  #       from_secret: dh_user_name
+  #     password:
+  #       from_secret: dh_pw
+  #   publish:
+  #     image: eignhpants/sheeta
+
+steps:
+- name: publish  
+  image: plugins/ecr
+  settings:
+    access_key: 
+      from_secret: ian_aws_key
+    secret_key: 
+      from_secret: ian_aws_secret
+    repo: sheeta
+    registry: 346096930733.dkr.ecr.us-east-1.amazonaws.com
