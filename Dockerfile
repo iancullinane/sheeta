@@ -8,4 +8,4 @@ ADD bin/sheeta /sheeta
 EXPOSE 8080
 
 # On run, execute the binary
-ENTRYPOINT ["/sheeta"]
+ENTRYPOINT ["/main"]
