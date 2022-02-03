@@ -38,9 +38,6 @@ func (cm *cloud) Deploy(s Services, req *cli.Context) error {
 
 	buildCreateRequest(&cr, sc.CloudConfig, sc.Tags)
 
-	// os.Exit(1)
-	// log.Printf("%#v", cr)
-
 	_, err := cm.s.CF.CreateStack(&cr)
 	if aerr, ok := err.(awserr.Error); ok {
 		return fmt.Errorf("Create Stack Request: %s", aerr)
