@@ -3,11 +3,20 @@ package main
 import (
 	"context"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func HandleRequest(ctx context.Context) (string, error) {
-	return "This is the response", nil
+type MyEvent struct {
+	Name string `json:"name"`
+}
+
+func HandleRequest(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	resp := events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Body:       "Something",
+	}
+	return resp, nil
 }
 
 func main() {
