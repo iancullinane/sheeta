@@ -33,4 +33,4 @@ steps:
       registry: 346096930733.dkr.ecr.us-east-1.amazonaws.com
       tags:
         - ${DRONE_COMMIT_BRANCH}
-        - ecr-latest
+        - lambda-version
