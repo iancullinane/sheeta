@@ -18,7 +18,7 @@ steps:
       repo: sheeta
       registry: 346096930733.dkr.ecr.us-east-1.amazonaws.com
       tags:
-        - ${DRONE_COMMIT_BRANCH}
+        - ${DRONE_COMMIT_SHA}
         - latest
 
   - name: publish-ecr
@@ -32,5 +32,5 @@ steps:
       dockerfile: ecr.Dockerfile
       registry: 346096930733.dkr.ecr.us-east-1.amazonaws.com
       tags:
-        - ${DRONE_COMMIT_BRANCH}
-        - ecr-latest
+        - ${DRONE_COMMIT_SHA}
+        - lambda-version
