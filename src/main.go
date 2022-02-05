@@ -2,19 +2,25 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-// type MyEvent struct {
-// 	Name string `json:"name"`
-// }
+type MyEvent struct {
+	Name string `json:"name"`
+}
 
-func HandleRequest(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+
+	var myEvent MyEvent
+	json.Unmarshal([]byte(req.Body), &myEvent)
+
 	resp := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
-		Body:       event.Body,
+		Body:       fmt.Sprintf("this is %s", myEvent.Name),
 	}
 	return resp, nil
 }
