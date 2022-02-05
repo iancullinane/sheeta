@@ -14,7 +14,7 @@ import (
 func HandleRequest(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	resp := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
-		Body:       "Something",
+		Body:       event.Body,
 	}
 	return resp, nil
 }
