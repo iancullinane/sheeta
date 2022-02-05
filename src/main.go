@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-type MyEvent struct {
-	Name string `json:"name"`
-}
+// type MyEvent struct {
+// 	Name string `json:"name"`
+// }
 
 func HandleRequest(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	resp := events.APIGatewayV2HTTPResponse{
