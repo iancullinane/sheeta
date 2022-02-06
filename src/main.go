@@ -15,9 +15,13 @@ import (
 // 	e discordgo.
 // }
 
-func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+type InteractionResp struct {
+	StatusCode int `json:"status_code"`
+}
 
-	resp := events.APIGatewayV2HTTPResponse{}
+func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (InteractionResp, error) {
+
+	resp := InteractionResp{}
 	// var me discordgo.MessageEmbed
 
 	//
@@ -38,13 +42,11 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 
 	if !ed25519.Verify(key, []byte(req.Body), sig) {
 		log.Println("Should return 401 here")
-		return events.APIGatewayV2HTTPResponse{
-			StatusCode: 401,
-		}, nil
+		return InteractionResp{StatusCode: 401}, nil
 	}
 
 	resp.StatusCode = 200
-	resp.Body = req.Body
+	// resp.Body = req.Body
 	return resp, nil
 }
 
