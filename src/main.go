@@ -21,7 +21,6 @@ type InteractionResp struct {
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (InteractionResp, error) {
 
-	resp := InteractionResp{}
 	// var me discordgo.MessageEmbed
 
 	//
@@ -30,14 +29,14 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (Int
 	signature := req.Headers["x-signature-ed25519"]
 	sig, _ := hex.DecodeString(signature)
 	if len(sig) != ed25519.SignatureSize {
-		return resp, nil
+		return InteractionResp{StatusCode: 401}, nil
 	}
 
 	key, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
 
 	timestamp := req.Headers["x-signature-timestamp"]
 	if timestamp == "" {
-		return resp, nil
+		return InteractionResp{StatusCode: 401}, nil
 	}
 
 	if !ed25519.Verify(key, []byte(req.Body), sig) {
@@ -45,9 +44,8 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (Int
 		return InteractionResp{StatusCode: 401}, nil
 	}
 
-	resp.StatusCode = 200
 	// resp.Body = req.Body
-	return resp, nil
+	return InteractionResp{StatusCode: 200}, nil
 }
 
 func main() {
