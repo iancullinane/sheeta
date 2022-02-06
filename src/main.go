@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -24,7 +25,7 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	//
 	//
 	//
-
+	log.Printf("%#v", req)
 	//
 	//
 	//
