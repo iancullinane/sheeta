@@ -19,11 +19,11 @@ type cloud struct {
 }
 
 // NewCloud returns a new cloud client which implements the Module interface
-func NewCloud(s Services, cfg map[string]string) *cloud {
+func NewCloud(s Services) *cloud {
 
 	c := cloud{
-		s:   s,
-		cfg: cfg,
+		s: s,
+		// cfg: cfg,
 	}
 
 	c.cliapp = bot.GenerateCLI(c.ExportCommands())

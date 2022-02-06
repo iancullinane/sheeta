@@ -1,70 +1,117 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
-	"encoding/json"
+	"flag"
 	"log"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/src/application"
+	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
-type MyEvent struct {
-	Name string `json:"name"`
-}
+// // Variables used for command line parameters
+var (
+	Token           string
+	RunSlashBuilder string
+)
 
-// type DiscordEvent struct {
-// 	e discordgo.
-// }
+// For command line startup
+// TODO::Container, cloud, blah blah blah
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
-	res := events.APIGatewayV2HTTPResponse{}
-	// var me discordgo.MessageEmbed
+	log.Printf("%#v", req.Body)
 
-	var myEvent MyEvent
-	json.Unmarshal([]byte(req.Body), &myEvent)
+	typedKey, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
 
-	//
-	//
-	//req.Headers["x-signature-ed25519"]
+	var resp events.APIGatewayV2HTTPResponse
+
 	signature := req.Headers["x-signature-ed25519"]
-	sig, _ := hex.DecodeString(signature)
-	if len(sig) != ed25519.SignatureSize {
-		return res, nil
+	sig, err := hex.DecodeString(signature)
+	if err != nil || len(sig) != ed25519.SignatureSize {
+		resp.StatusCode = 401
+		resp.Body = "Failed manual len check"
+		return resp, err
 	}
-
-	key, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
 
 	timestamp := req.Headers["x-signature-timestamp"]
 	if timestamp == "" {
-		return res, nil
+		resp.StatusCode = 401
+		resp.Body = "Failed on find timestamp"
+		return resp, nil
 	}
 
-	if !ed25519.Verify(key, []byte(req.Body), sig) {
-		return events.APIGatewayV2HTTPResponse{
-			StatusCode: 401,
-		}, nil
+	var msg bytes.Buffer
+	msg.WriteString(timestamp)
+	msg.WriteString(req.Body)
+	if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
+		resp.StatusCode = 401
+		resp.Headers = req.Headers
+		return resp, nil
 	}
 
-	resp := events.APIGatewayV2HTTPResponse{
-		StatusCode: 200,
-		// Body:       fmt.Sprintf("this is %s", myEvent.Name),
-		Body: req.Body,
-	}
+	resp.StatusCode = 200
+	resp.Body = req.Body
 	return resp, nil
+}
+
+func init() {
+	flag.StringVar(&Token, "t", "", "Bot Token")
+	flag.StringVar(&RunSlashBuilder, "b", "", "Slash command builder")
+	flag.Parse()
 }
 
 func main() {
 
-	d, _ := discordgo.New("Bot " + "asdfasdf")
-	log.Printf("%#v", d)
-	//
-	// Mental note, make clients here, notes are below
-	//
+	sess := session.Must(session.NewSession())
+	// AWS config for client creation
+	awsConfigUsEast1 := &aws.Config{
+		CredentialsChainVerboseErrors: aws.Bool(true),
+		S3ForcePathStyle:              aws.Bool(true),
+		Region:                        aws.String("us-east-1"), // us-east-2 is the destination bucket region
+	}
+
+	// Create service client value configured for credentials
+	// from assumed role.
+	// s3svc := s3manager.NewDownloader(sess)
+	// cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
+	ssmStore := ssm.New(sess, awsConfigUsEast1)
+	dToken, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/token"))
+	if err != nil {
+		panic(err)
+	}
+
+	apiID, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/app-id"))
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("token value")
+	log.Printf("%#v", *dToken.Parameter.Value)
+	d, err := discordgo.New("Bot " + *dToken.Parameter.Value)
+	if err != nil {
+		panic(err)
+	}
+
+	if RunSlashBuilder == "create" {
+		log.Println("api value")
+		log.Printf("%#v", *apiID.Parameter.Value)
+		err := application.CreateSlashCommands(*apiID.Parameter.Value, d)
+		if err != nil {
+			log.Println(err)
+		}
+		os.Exit(0)
+	}
 
 	lambda.Start(HandleRequest)
 }
