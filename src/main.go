@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -13,19 +12,37 @@ type MyEvent struct {
 	Name string `json:"name"`
 }
 
+// type DiscordEvent struct {
+// 	e discordgo.Application.
+// }
+
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	var myEvent MyEvent
 	json.Unmarshal([]byte(req.Body), &myEvent)
 
+	//
+	//
+	//
+
+	//
+	//
+	//
+
 	resp := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
-		Body:       fmt.Sprintf("this is %s", myEvent.Name),
+		// Body:       fmt.Sprintf("this is %s", myEvent.Name),
+		Body: req.Body,
 	}
 	return resp, nil
 }
 
 func main() {
+
+	//
+	// Mental note, make clients here, notes are below
+	//
+
 	lambda.Start(HandleRequest)
 }
 
@@ -103,4 +120,37 @@ func main() {
 
 // 	// Cleanly close down the Discord session.
 // 	d.Close()
+// }
+
+//
+//
+//
+//
+
+// logger := logrus.New()
+// logger.Level = logrus.InfoLevel
+// logger.Out = os.Stdout
+
+// if config.GetVerbose() {
+// 	logger.Level = logrus.DebugLevel
+// }
+
+// logger.Infof("%s %s (%s, %s)", runtimeConfig.GetEnvironment(), runtimeConfig.GetServiceName(), VersionString, runtime.Version())
+
+// datadogAPIKey := config.GetDatadogAPIKey()
+// datadogAppKey := config.GetDatadogApplicationKey()
+// bb := config.GetBackupBucketName()
+
+// sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(config.GetRegion())}))
+// uploader := s3manager.NewUploader(sess)
+
+// clock := clock.New()
+
+// ddc := datadog.NewClient(datadogAPIKey, datadogAppKey)
+// r := handler.Resources{
+// 	DD:         ddc,
+// 	Uploader:   uploader,
+// 	Logger:     logger,
+// 	BucketName: bb,
+// 	Clock:      clock,
 // }
