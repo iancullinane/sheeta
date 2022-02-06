@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/ed25519"
+	"encoding/hex"
 	"encoding/json"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/bwmarrin/discordgo"
 )
 
 type MyEvent struct {
@@ -14,21 +17,38 @@ type MyEvent struct {
 }
 
 // type DiscordEvent struct {
-// 	e discordgo.Application.
+// 	e discordgo.
 // }
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+
+	res := events.APIGatewayV2HTTPResponse{}
+	// var me discordgo.MessageEmbed
 
 	var myEvent MyEvent
 	json.Unmarshal([]byte(req.Body), &myEvent)
 
 	//
 	//
-	//
-	log.Printf("%#v", req)
-	//
-	//
-	//
+	//req.Headers["x-signature-ed25519"]
+	signature := req.Headers["x-signature-ed25519"]
+	sig, _ := hex.DecodeString(signature)
+	if len(sig) != ed25519.SignatureSize {
+		return res, nil
+	}
+
+	key, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
+
+	timestamp := req.Headers["x-signature-timestamp"]
+	if timestamp == "" {
+		return res, nil
+	}
+
+	if !ed25519.Verify(key, []byte(req.Body), sig) {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 401,
+		}, nil
+	}
 
 	resp := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
@@ -40,6 +60,8 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 
 func main() {
 
+	d, _ := discordgo.New("Bot " + "asdfasdf")
+	log.Printf("%#v", d)
 	//
 	// Mental note, make clients here, notes are below
 	//
