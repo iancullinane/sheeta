@@ -5,28 +5,36 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
+	"flag"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
-// type DiscordEvent struct {
-// 	e discordgo.
-// }
+// // Variables used for command line parameters
+var (
+	Token string
+)
+
+// For command line startup
+// TODO::Container, cloud, blah blah blah
+func init() {
+	flag.StringVar(&Token, "t", "", "Bot Token")
+	flag.Parse()
+}
+
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
-	// var me discordgo.MessageEmbed
-	log.Println("--- Got interaction request")
-	log.Printf("%#v", req.Headers)
-	log.Printf("%#v", req.Body)
-	publicKey := []byte("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
 	typedKey, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
-	log.Printf("%s", publicKey)
+
 	var resp events.APIGatewayV2HTTPResponse
-	//
-	//
-	//req.Headers["x-signature-ed25519"]
+
 	signature := req.Headers["x-signature-ed25519"]
 	sig, err := hex.DecodeString(signature)
 	if err != nil || len(sig) != ed25519.SignatureSize {
@@ -34,14 +42,6 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		resp.Body = "Failed manual len check"
 		return resp, err
 	}
-
-	// key = ed25519.
-	// key, err := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
-	// if err != nil {
-	// 	log.Println("Eror decoding")
-	// 	resp.StatusCode = 401
-	// 	return resp, nil
-	// }
 
 	timestamp := req.Headers["x-signature-timestamp"]
 	if timestamp == "" {
@@ -53,17 +53,11 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	var msg bytes.Buffer
 	msg.WriteString(timestamp)
 	msg.WriteString(req.Body)
-	log.Println("----Write merged body")
-	log.Printf("%s", msg.String())
 	if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
-		log.Println("Should return 401 here")
-		log.Printf("%v\n%v\n%v\n", publicKey, req.Headers, req.Body)
 		resp.StatusCode = 401
 		resp.Headers = req.Headers
 		return resp, nil
 	}
-
-	log.Println("But did not return 401?")
 
 	resp.StatusCode = 200
 	resp.Body = req.Body
@@ -72,8 +66,37 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 
 func main() {
 
-	// d, _ := discordgo.New("Bot " + "asdfasdf")
+	sess := session.Must(session.NewSession())
+	// AWS config for client creation
+	awsConfigUsEast1 := &aws.Config{
+		CredentialsChainVerboseErrors: aws.Bool(true),
+		S3ForcePathStyle:              aws.Bool(true),
+		Region:                        aws.String("us-east-1"), // us-east-2 is the destination bucket region
+	}
 
+	// Create service client value configured for credentials
+	// from assumed role.
+	// s3svc := s3manager.NewDownloader(sess)
+	// cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
+	ssmStore := ssm.New(sess, awsConfigUsEast1)
+	dToken, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/token"))
+	if err != nil {
+		panic(err)
+	}
+	// aws.
+	// This effectively defines what aws services are available
+	// TODO::I want to move this into its module, but it causes tests to break
+	// because of a region error related to the credential chain
+	// cr := cloud.Services{
+	// S3: s3svc,
+	// CF: cfnSvc,
+	// }
+
+	d, err := discordgo.New("Bot " + dToken.GoString())
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("%#v", d)
 	//
 	// Mental note, make clients here, notes are below
 	//
