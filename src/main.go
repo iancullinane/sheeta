@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
+	"errors"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -30,23 +31,23 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (Int
 	signature := req.Headers["x-signature-ed25519"]
 	sig, _ := hex.DecodeString(signature)
 	if len(sig) != ed25519.SignatureSize {
-		return InteractionResp{statusCode: 401}, nil
+		return InteractionResp{statusCode: 401}, errors.New("signature error")
 	}
 
 	key, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
 
 	timestamp := req.Headers["x-signature-timestamp"]
 	if timestamp == "" {
-		return InteractionResp{statusCode: 401}, nil
+		return InteractionResp{statusCode: 401}, errors.New("signature error")
 	}
 
 	if !ed25519.Verify(key, []byte(req.Body), sig) {
 		log.Println("Should return 401 here")
-		return InteractionResp{statusCode: 401}, nil
+		return InteractionResp{statusCode: 401}, errors.New("signature error")
 	}
 
 	// resp.Body = req.Body
-	return InteractionResp{statusCode: 200}, nil
+	return InteractionResp{statusCode: 200}, errors.New("signature error")
 }
 
 func main() {
