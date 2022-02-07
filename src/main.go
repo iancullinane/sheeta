@@ -125,6 +125,9 @@ func main() {
 }
 
 func Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
+
+	log.Println("---- Received message")
+	log.Printf("%#v", m)
 	// Just ignore certain cases like the bot mentioning itself
 	if !bot.ValidateMsg(m.Author.ID, s.State.User.ID, m.Mentions) {
 		return
