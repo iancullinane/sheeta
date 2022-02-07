@@ -22,6 +22,7 @@ type InteractionResp struct {
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (InteractionResp, error) {
 
 	// var me discordgo.MessageEmbed
+	log.Printf("%#v", req)
 
 	//
 	//
