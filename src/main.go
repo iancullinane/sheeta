@@ -16,7 +16,7 @@ import (
 // }
 
 type InteractionResp struct {
-	StatusCode int
+	StatusCode int `'json:"statusCode"`
 }
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (InteractionResp, error) {
