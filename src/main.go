@@ -5,8 +5,10 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -14,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/src/internal/bot"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -97,11 +100,56 @@ func main() {
 		panic(err)
 	}
 	log.Printf("%#v", d)
+
+	// This effectively defines what aws services are available
+	// TODO::I want to move this into its module, but it causes tests to break
+	// because of a region error related to the credential chain
+	// cr := cloud.Services{
+	// S3: s3svc,
+	// CF: cfnSvc,
+	// }
+
+	// var bot []bot.Module
+	// c := cloud.NewCloud(cr)
+	// bot = append(bot, c)
+	// Register modules handlers to discord bot
+	// for _, mod := range bot {
+	// 	d.AddHandler(mod.ExportHandler())
+	// }
+	d.AddHandler(Handler)
 	//
 	// Mental note, make clients here, notes are below
 	//
 
 	lambda.Start(HandleRequest)
+}
+
+func Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// Just ignore certain cases like the bot mentioning itself
+	if !bot.ValidateMsg(m.Author.ID, s.State.User.ID, m.Mentions) {
+		return
+	}
+
+	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
+
+	if len(msg) <= 1 {
+		bot.SendErrorToUser(s, errors.New("no command tho?"), m.ChannelID, "CLI error")
+		return
+	}
+	bot.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
+	// if msg[0] != moduleName {
+	// 	bot.SendErrorToUser(s, errors.New("invalid command"), m.ChannelID, "CLI error")
+	// 	return
+	// }
+
+	// if msg[1] == "deploy" {
+	// 	cm.deployHandler(msg, s, m)
+	// }
+
+	// if msg[1] == "update" {
+	// 	cm.updateHandler(msg, s, m)
+	// }
+
 }
 
 // // Variables used for command line parameters
