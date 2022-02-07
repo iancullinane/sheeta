@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
@@ -28,10 +29,10 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	//
 	//req.Headers["x-signature-ed25519"]
 	signature := req.Headers["x-signature-ed25519"]
-	sig, _ := hex.DecodeString(signature)
-	if len(sig) != ed25519.SignatureSize {
+	sig, err := hex.DecodeString(signature)
+	if err != nil || len(sig) != ed25519.SignatureSize {
 		resp.StatusCode = 401
-		return resp, nil
+		return resp, err
 	}
 
 	key, err := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
@@ -47,7 +48,10 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		return resp, nil
 	}
 
-	if !ed25519.Verify(key, []byte(req.Body), sig) {
+	var msg bytes.Buffer
+	msg.WriteString(timestamp)
+	msg.WriteString(req.Body)
+	if !ed25519.Verify(key, msg.Bytes(), sig) {
 		log.Println("Should return 401 here")
 		log.Printf("%v\n%v\n%v\n", key, sig, req.Body)
 		resp.StatusCode = 401
