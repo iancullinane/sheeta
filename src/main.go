@@ -65,7 +65,8 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 
 	log.Println("But did not return 401?")
 
-	// resp.Body = req.Body
+	resp.StatusCode = 200
+	resp.Body = req.Body
 	return resp, nil
 }
 
