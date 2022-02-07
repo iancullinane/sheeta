@@ -34,7 +34,12 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		return resp, nil
 	}
 
-	key, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
+	key, err := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
+	if err != nil {
+		log.Println("Eror decoding")
+		resp.StatusCode = 401
+		return resp, nil
+	}
 
 	timestamp := req.Headers["x-signature-timestamp"]
 	if timestamp == "" {
@@ -44,9 +49,13 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 
 	if !ed25519.Verify(key, []byte(req.Body), sig) {
 		log.Println("Should return 401 here")
+		log.Printf("%v\n%v\n%v\n", key, sig, req.Body)
 		resp.StatusCode = 401
+		resp.Headers = req.Headers
 		return resp, nil
 	}
+
+	log.Println("But did not return 401?")
 
 	// resp.Body = req.Body
 	return resp, nil
