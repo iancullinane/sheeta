@@ -92,7 +92,7 @@ func main() {
 	// CF: cfnSvc,
 	// }
 
-	d, err := discordgo.New("Bot " + dToken.GoString())
+	d, err := discordgo.New("Bot " + *dToken.Parameter.Value)
 	if err != nil {
 		panic(err)
 	}
