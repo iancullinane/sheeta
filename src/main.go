@@ -16,7 +16,7 @@ import (
 // }
 
 type InteractionResp struct {
-	StatusCode int `'json:"statusCode"`
+	statusCode int `'json:"statusCode"`
 }
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (InteractionResp, error) {
@@ -30,23 +30,23 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (Int
 	signature := req.Headers["x-signature-ed25519"]
 	sig, _ := hex.DecodeString(signature)
 	if len(sig) != ed25519.SignatureSize {
-		return InteractionResp{StatusCode: 401}, nil
+		return InteractionResp{statusCode: 401}, nil
 	}
 
 	key, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
 
 	timestamp := req.Headers["x-signature-timestamp"]
 	if timestamp == "" {
-		return InteractionResp{StatusCode: 401}, nil
+		return InteractionResp{statusCode: 401}, nil
 	}
 
 	if !ed25519.Verify(key, []byte(req.Body), sig) {
 		log.Println("Should return 401 here")
-		return InteractionResp{StatusCode: 401}, nil
+		return InteractionResp{statusCode: 401}, nil
 	}
 
 	// resp.Body = req.Body
-	return InteractionResp{StatusCode: 200}, nil
+	return InteractionResp{statusCode: 200}, nil
 }
 
 func main() {
