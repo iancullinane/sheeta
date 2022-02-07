@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
-	"errors"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -20,34 +19,37 @@ type InteractionResp struct {
 	statusCode int `'json:"statusCode"`
 }
 
-func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (InteractionResp, error) {
+func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	// var me discordgo.MessageEmbed
 	log.Printf("%#v", req)
-
+	var resp events.APIGatewayV2HTTPResponse
 	//
 	//
 	//req.Headers["x-signature-ed25519"]
 	signature := req.Headers["x-signature-ed25519"]
 	sig, _ := hex.DecodeString(signature)
 	if len(sig) != ed25519.SignatureSize {
-		return InteractionResp{statusCode: 401}, errors.New("signature error")
+		resp.StatusCode = 401
+		return resp, nil
 	}
 
 	key, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
 
 	timestamp := req.Headers["x-signature-timestamp"]
 	if timestamp == "" {
-		return InteractionResp{statusCode: 401}, errors.New("signature error")
+		resp.StatusCode = 401
+		return resp, nil
 	}
 
 	if !ed25519.Verify(key, []byte(req.Body), sig) {
 		log.Println("Should return 401 here")
-		return InteractionResp{statusCode: 401}, errors.New("signature error")
+		resp.StatusCode = 401
+		return resp, nil
 	}
 
 	// resp.Body = req.Body
-	return InteractionResp{statusCode: 200}, errors.New("signature error")
+	return resp, nil
 }
 
 func main() {
