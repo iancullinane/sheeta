@@ -9,21 +9,20 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/bwmarrin/discordgo"
 )
 
 // type DiscordEvent struct {
 // 	e discordgo.
 // }
-
-type InteractionResp struct {
-	statusCode int `'json:"statusCode"`
-}
-
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	// var me discordgo.MessageEmbed
-	log.Printf("%#v", req)
+	log.Println("--- Got interaction request")
+	log.Printf("%#v", req.Headers)
+	log.Printf("%#v", req.Body)
+	publicKey := []byte("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
+	typedKey, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
+	log.Printf("%s", publicKey)
 	var resp events.APIGatewayV2HTTPResponse
 	//
 	//
@@ -32,6 +31,7 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	sig, err := hex.DecodeString(signature)
 	if err != nil || len(sig) != ed25519.SignatureSize {
 		resp.StatusCode = 401
+		resp.Body = "Failed manual len check"
 		return resp, err
 	}
 
@@ -46,16 +46,18 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	timestamp := req.Headers["x-signature-timestamp"]
 	if timestamp == "" {
 		resp.StatusCode = 401
+		resp.Body = "Failed on find timestamp"
 		return resp, nil
 	}
 
-	key := "cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63"
 	var msg bytes.Buffer
 	msg.WriteString(timestamp)
 	msg.WriteString(req.Body)
-	if !ed25519.Verify([]byte(key), msg.Bytes(), sig) {
+	log.Println("----Write merged body")
+	log.Printf("%s", msg.String())
+	if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
 		log.Println("Should return 401 here")
-		log.Printf("%v\n%v\n%v\n", key, req.Headers, req.Body)
+		log.Printf("%v\n%v\n%v\n", publicKey, req.Headers, req.Body)
 		resp.StatusCode = 401
 		resp.Headers = req.Headers
 		return resp, nil
@@ -69,8 +71,8 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 
 func main() {
 
-	d, _ := discordgo.New("Bot " + "asdfasdf")
-	log.Printf("%#v", d)
+	// d, _ := discordgo.New("Bot " + "asdfasdf")
+
 	//
 	// Mental note, make clients here, notes are below
 	//
