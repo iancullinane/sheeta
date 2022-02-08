@@ -97,6 +97,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	log.Println("From init")
+	log.Println(*keyFromSSM.Parameter.Value)
+
 	publicKey = typedKey
 }
 
@@ -106,6 +110,9 @@ func init() {
 func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+		log.Println("Public key from main")
+		log.Println(publicKey)
 
 		if !discordgo.VerifyInteraction(r, publicKey) {
 			log.Println("Error signature mismatch")
