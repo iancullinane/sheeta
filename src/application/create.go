@@ -8,6 +8,8 @@ import (
 
 func CreateSlashCommands(appID string, s *discordgo.Session) error {
 
+	s.AddHandler(BasicInteraction)
+
 	for _, v := range commands {
 		_, err := s.ApplicationCommandCreate("703973863335264286", "", v)
 		if err != nil {

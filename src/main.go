@@ -71,6 +71,9 @@ func init() {
 	flag.Parse()
 }
 
+//
+// Main
+//
 func main() {
 
 	sess := session.Must(session.NewSession())
