@@ -17,7 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
-	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/discordgo"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -118,11 +118,10 @@ func main() {
 		log.Printf("%#v", r.Header)
 
 		if !discordgo.VerifyInteraction(r, publicKey) {
-			log.Println("Error signature mismatch")
+			log.Println("error signature did not verify")
 			http.Error(w, "signature mismatch", http.StatusUnauthorized)
 			return
 		}
-		defer r.Body.Close()
 
 		fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
 
