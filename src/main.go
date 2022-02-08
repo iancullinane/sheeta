@@ -6,8 +6,6 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"flag"
-	"fmt"
-	"html"
 	"io"
 	"log"
 	"net/http"
@@ -98,8 +96,8 @@ func init() {
 	// 	panic(err)
 	// }
 
-	log.Println("From init")
-	log.Println(*keyFromSSM.Parameter.Value)
+	// log.Println("From init")
+	// log.Println(*keyFromSSM.Parameter.Value)
 
 	publicKey = *keyFromSSM.Parameter.Value
 }
@@ -111,14 +109,21 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		typedKey, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
+		log.Println(publicKey)
+		typedKey, err := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
+		if err != nil {
+			log.Println("decode public error")
+			http.Error(w, "decode public error", http.StatusUnauthorized)
+		}
 
 		signature := r.Header.Get("X-Signature-Ed25519")
 		sig, err := hex.DecodeString(signature)
 		if err != nil || len(sig) != ed25519.SignatureSize {
 			// resp.StatusCode = 401
 			// resp.Body = "Failed manual len check"
-			http.Error(w, "pubkey error", http.StatusUnauthorized)
+			log.Println("get sig error")
+
+			http.Error(w, "header key error", http.StatusUnauthorized)
 			return
 		}
 
@@ -127,6 +132,7 @@ func main() {
 			// resp.StatusCode = 401
 			// resp.Body = "Failed on find timestamp"
 			// return resp, nil
+			log.Println("get timestamp error")
 			http.Error(w, "timestamp error", http.StatusUnauthorized)
 		}
 
@@ -134,21 +140,22 @@ func main() {
 		defer r.Body.Close()
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
+			log.Println("error reading body")
 			http.Error(w, "error reading body", http.StatusUnauthorized)
-			log.Fatal(err)
 		}
 
 		msg.WriteString(timestamp)
 		msg.WriteString(string(bodyBytes))
 		if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
-			// resp.StatusCode = 401
-			// resp.Headers = req.Headers
-			// return resp, nil
+			log.Println("error verifying")
 			http.Error(w, "verify failed", http.StatusUnauthorized)
 		}
 
-		fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
-
+		// fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
+		// w.Header().Set()
+		log.Println("After verify")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Return this string"))
 		// log.Println("Public key from main")
 		// log.Println(publicKey)
 
