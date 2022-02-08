@@ -5,10 +5,9 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
-	"errors"
 	"flag"
 	"log"
-	"strings"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,23 +15,22 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/bwmarrin/discordgo"
-	"github.com/iancullinane/sheeta/src/internal/bot"
+	"github.com/iancullinane/sheeta/src/application"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
 // // Variables used for command line parameters
 var (
-	Token string
+	Token           string
+	RunSlashBuilder string
 )
 
 // For command line startup
 // TODO::Container, cloud, blah blah blah
-func init() {
-	flag.StringVar(&Token, "t", "", "Bot Token")
-	flag.Parse()
-}
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+
+	log.Printf("%#v", req.Body)
 
 	typedKey, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
 
@@ -67,6 +65,12 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	return resp, nil
 }
 
+func init() {
+	flag.StringVar(&Token, "t", "", "Bot Token")
+	flag.StringVar(&RunSlashBuilder, "b", "", "Slash command builder")
+	flag.Parse()
+}
+
 func main() {
 
 	sess := session.Must(session.NewSession())
@@ -86,73 +90,30 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// aws.
-	// This effectively defines what aws services are available
-	// TODO::I want to move this into its module, but it causes tests to break
-	// because of a region error related to the credential chain
-	// cr := cloud.Services{
-	// S3: s3svc,
-	// CF: cfnSvc,
-	// }
 
+	apiID, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/app-id"))
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("token value")
+	log.Printf("%#v", *dToken.Parameter.Value)
 	d, err := discordgo.New("Bot " + *dToken.Parameter.Value)
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("%#v", d)
 
-	// This effectively defines what aws services are available
-	// TODO::I want to move this into its module, but it causes tests to break
-	// because of a region error related to the credential chain
-	// cr := cloud.Services{
-	// S3: s3svc,
-	// CF: cfnSvc,
-	// }
-
-	// var bot []bot.Module
-	// c := cloud.NewCloud(cr)
-	// bot = append(bot, c)
-	// Register modules handlers to discord bot
-	// for _, mod := range bot {
-	// 	d.AddHandler(mod.ExportHandler())
-	// }
-	d.AddHandler(Handler)
-	//
-	// Mental note, make clients here, notes are below
-	//
+	if RunSlashBuilder == "create" {
+		log.Println("api value")
+		log.Printf("%#v", *apiID.Parameter.Value)
+		err := application.CreateSlashCommands(*apiID.Parameter.Value, d)
+		if err != nil {
+			log.Println(err)
+		}
+		os.Exit(0)
+	}
 
 	lambda.Start(HandleRequest)
-}
-
-func Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
-
-	log.Println("---- Received message")
-	log.Printf("%#v", m)
-	// Just ignore certain cases like the bot mentioning itself
-	if !bot.ValidateMsg(m.Author.ID, s.State.User.ID, m.Mentions) {
-		return
-	}
-
-	msg := strings.Split(m.ContentWithMentionsReplaced(), " ")[1:]
-
-	if len(msg) <= 1 {
-		bot.SendErrorToUser(s, errors.New("no command tho?"), m.ChannelID, "CLI error")
-		return
-	}
-	bot.SendSuccessToUser(s, m.ChannelID, "Heard cap'n")
-	// if msg[0] != moduleName {
-	// 	bot.SendErrorToUser(s, errors.New("invalid command"), m.ChannelID, "CLI error")
-	// 	return
-	// }
-
-	// if msg[1] == "deploy" {
-	// 	cm.deployHandler(msg, s, m)
-	// }
-
-	// if msg[1] == "update" {
-	// 	cm.updateHandler(msg, s, m)
-	// }
-
 }
 
 // // Variables used for command line parameters
