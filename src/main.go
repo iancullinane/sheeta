@@ -114,6 +114,9 @@ func main() {
 		log.Println("Public key from main")
 		log.Println(publicKey)
 
+		log.Println("headers main")
+		log.Printf("%#v", r.Header)
+
 		if !discordgo.VerifyInteraction(r, publicKey) {
 			log.Println("Error signature mismatch")
 			http.Error(w, "signature mismatch", http.StatusUnauthorized)
