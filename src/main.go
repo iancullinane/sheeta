@@ -6,13 +6,19 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"flag"
-	"io"
+	"fmt"
+	"html"
 	"log"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
+	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
 // // Variables used for command line parameters
@@ -71,9 +77,38 @@ func init() {
 // Main
 //
 func main() {
+	sess := session.Must(session.NewSession())
+	// AWS config for client creation
+	awsConfigUsEast1 := &aws.Config{
+		CredentialsChainVerboseErrors: aws.Bool(true),
+		S3ForcePathStyle:              aws.Bool(true),
+		Region:                        aws.String("us-east-1"), // us-east-2 is the destination bucket region
+	}
+
+	// Create service client value configured for credentials
+	// from assumed role.
+	// s3svc := s3manager.NewDownloader(sess)
+	// cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
+	ssmStore := ssm.New(sess, awsConfigUsEast1)
+	publicKey, err := services.GetParameterDecrypted(ssmStore, aws.String("/discord/sheeta/publickey"))
+	if err != nil {
+		panic(err)
+	}
+	typedKey, err := hex.DecodeString(*publicKey.Parameter.Value)
+	if err != nil {
+		panic(err)
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "Hello")
+
+		if !discordgo.VerifyInteraction(r, typedKey) {
+			http.Error(w, "signature mismatch", http.StatusUnauthorized)
+			return
+		}
+		defer r.Body.Close()
+
+		fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
+
 	})
 
 	lambda.Start(httpadapter.NewV2(http.DefaultServeMux).ProxyWithContext)

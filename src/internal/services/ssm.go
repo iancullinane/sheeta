@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 )
 
-func GetParameter(svc ssmiface.SSMAPI, name *string) (*ssm.GetParameterOutput, error) {
+func GetParameterDecrypted(svc ssmiface.SSMAPI, name *string) (*ssm.GetParameterOutput, error) {
 	results, err := svc.GetParameter(&ssm.GetParameterInput{
 		Name:           name,
 		WithDecryption: aws.Bool(true),
