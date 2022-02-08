@@ -90,8 +90,9 @@ func main() {
 	// s3svc := s3manager.NewDownloader(sess)
 	// cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
 	ssmStore := ssm.New(sess, awsConfigUsEast1)
-	publicKey, err := services.GetParameterDecrypted(ssmStore, aws.String("/discord/sheeta/publickey"))
+	publicKey, err := services.GetParameterDecrypted(ssmStore, aws.String("/discord/sheeta/publicKey"))
 	if err != nil {
+		log.Println("Error getting publickey")
 		panic(err)
 	}
 	typedKey, err := hex.DecodeString(*publicKey.Parameter.Value)
@@ -102,6 +103,7 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 		if !discordgo.VerifyInteraction(r, typedKey) {
+			log.Println("Error signature mismatch")
 			http.Error(w, "signature mismatch", http.StatusUnauthorized)
 			return
 		}
