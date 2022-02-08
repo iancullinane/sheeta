@@ -134,6 +134,7 @@ func main() {
 			// return resp, nil
 			log.Println("get timestamp error")
 			http.Error(w, "timestamp error", http.StatusUnauthorized)
+			return
 		}
 
 		var msg bytes.Buffer
@@ -142,6 +143,7 @@ func main() {
 		if err != nil {
 			log.Println("error reading body")
 			http.Error(w, "error reading body", http.StatusUnauthorized)
+			return
 		}
 
 		msg.WriteString(timestamp)
@@ -149,6 +151,7 @@ func main() {
 		if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
 			log.Println("error verifying")
 			http.Error(w, "verify failed", http.StatusUnauthorized)
+			return
 		}
 
 		// fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
