@@ -17,7 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
-	"github.com/iancullinane/discordgo"
+	"github.com/bsdlp/discord-interactions-go/interactions"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -29,7 +29,7 @@ var (
 
 var (
 	sess      *session.Session
-	publicKey ed25519.PublicKey
+	publicKey string
 )
 
 // For command line startup
@@ -93,15 +93,15 @@ func init() {
 		log.Println("Error getting publickey")
 		panic(err)
 	}
-	typedKey, err := hex.DecodeString(*keyFromSSM.Parameter.Value)
-	if err != nil {
-		panic(err)
-	}
+	// typedKey, err := hex.DecodeString(*keyFromSSM.Parameter.Value)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	log.Println("From init")
 	log.Println(*keyFromSSM.Parameter.Value)
 
-	publicKey = typedKey
+	publicKey = *keyFromSSM.Parameter.Value
 }
 
 //
@@ -117,11 +117,19 @@ func main() {
 		log.Println("headers main")
 		log.Printf("%#v", r.Header)
 
-		if !discordgo.VerifyInteraction(r, publicKey) {
-			log.Println("error signature did not verify")
+		publicKeyDecoded, _ := hex.DecodeString(publicKey)
+
+		verified := interactions.Verify(r, ed25519.PublicKey(publicKeyDecoded))
+		if !verified {
 			http.Error(w, "signature mismatch", http.StatusUnauthorized)
 			return
 		}
+
+		// if !discordgo.VerifyInteraction(r, publicKey) {
+		// 	log.Println("error signature did not verify")
+		// 	http.Error(w, "signature mismatch", http.StatusUnauthorized)
+		// 	return
+		// }
 
 		fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
 
