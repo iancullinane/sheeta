@@ -9,6 +9,7 @@ require (
 	github.com/bwmarrin/discordgo v0.23.3-0.20220202194601-aba5dc811da8
 	github.com/golang/mock v1.4.3
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/iancullinane/discordgo v0.23.3-0.20220208184439-8f842cfb1384 // indirect
 	github.com/sirupsen/logrus v1.5.0 // indirect
 	github.com/urfave/cli v1.22.4
 	github.com/urfave/cli/v2 v2.2.0
