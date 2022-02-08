@@ -147,6 +147,8 @@ func main() {
 			http.Error(w, "verify failed", http.StatusUnauthorized)
 		}
 
+		fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
+
 		// log.Println("Public key from main")
 		// log.Println(publicKey)
 
@@ -166,8 +168,6 @@ func main() {
 		// 	http.Error(w, "signature mismatch", http.StatusUnauthorized)
 		// 	return
 		// }
-
-		fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
 
 	})
 
