@@ -27,6 +27,11 @@ var (
 	RunSlashBuilder string
 )
 
+var (
+	sess      *session.Session
+	publicKey ed25519.PublicKey
+)
+
 // For command line startup
 // TODO::Container, cloud, blah blah blah
 
@@ -73,36 +78,36 @@ func init() {
 	flag.Parse()
 }
 
-//
-// Main
-//
-func main() {
-	sess := session.Must(session.NewSession())
-	// AWS config for client creation
+func init() {
+
+	sess = session.Must(session.NewSession())
 	awsConfigUsEast1 := &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		S3ForcePathStyle:              aws.Bool(true),
 		Region:                        aws.String("us-east-1"), // us-east-2 is the destination bucket region
 	}
 
-	// Create service client value configured for credentials
-	// from assumed role.
-	// s3svc := s3manager.NewDownloader(sess)
-	// cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
 	ssmStore := ssm.New(sess, awsConfigUsEast1)
-	publicKey, err := services.GetParameterDecrypted(ssmStore, aws.String("/discord/sheeta/publicKey"))
+	keyFromSSM, err := services.GetParameterDecrypted(ssmStore, aws.String("/discord/sheeta/publicKey"))
 	if err != nil {
 		log.Println("Error getting publickey")
 		panic(err)
 	}
-	typedKey, err := hex.DecodeString(*publicKey.Parameter.Value)
+	typedKey, err := hex.DecodeString(*keyFromSSM.Parameter.Value)
 	if err != nil {
 		panic(err)
 	}
+	publicKey = typedKey
+}
+
+//
+// Main
+//
+func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		if !discordgo.VerifyInteraction(r, typedKey) {
+		if !discordgo.VerifyInteraction(r, publicKey) {
 			log.Println("Error signature mismatch")
 			http.Error(w, "signature mismatch", http.StatusUnauthorized)
 			return
