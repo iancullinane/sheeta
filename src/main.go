@@ -6,7 +6,7 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"flag"
-	"io"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -116,68 +116,8 @@ func main() {
 			http.Error(w, "decode public error", http.StatusUnauthorized)
 		}
 
-		signature := r.Header.Get("X-Signature-Ed25519")
-		sig, err := hex.DecodeString(signature)
-		if err != nil || len(sig) != ed25519.SignatureSize {
-			// resp.StatusCode = 401
-			// resp.Body = "Failed manual len check"
-			log.Println("get sig error")
-
-			http.Error(w, "header key error", http.StatusUnauthorized)
-			return
-		}
-
-		timestamp := r.Header.Get("X-Signature-Timestamp")
-		if timestamp == "" {
-			// resp.StatusCode = 401
-			// resp.Body = "Failed on find timestamp"
-			// return resp, nil
-			log.Println("get timestamp error")
-			http.Error(w, "timestamp error", http.StatusUnauthorized)
-			return
-		}
-
-		var msg bytes.Buffer
-		defer r.Body.Close()
-		bodyBytes, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Println("error reading body")
-			http.Error(w, "error reading body", http.StatusUnauthorized)
-			return
-		}
-
-		msg.WriteString(timestamp)
-		msg.WriteString(string(bodyBytes))
-		if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
-			log.Println("error verifying")
-			http.Error(w, "verify failed", http.StatusUnauthorized)
-			return
-		}
-
-		// fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
-		// w.Header().Set()
-		log.Println("After verify")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Return this string"))
-		// log.Println("Public key from main")
-		// log.Println(publicKey)
-
-		// log.Println("headers main")
-		// log.Printf("%#v", r.Header)
-
-		// publicKeyDecoded, _ := hex.DecodeString(publicKey)
-
-		// verified := interactions.Verify(r, ed25519.PublicKey(publicKeyDecoded))
-		// if !verified {
-		// 	http.Error(w, "signature mismatch", http.StatusUnauthorized)
-		// 	return
-		// }
-
-		// if !discordgo.VerifyInteraction(r, publicKey) {
-		// 	log.Println("error signature did not verify")
-		// 	http.Error(w, "signature mismatch", http.StatusUnauthorized)
-		// 	return
-		// }
+		log.Println(typedKey)
+		fmt.Fprintf(w, "Successfully did nothing, %q", "some string")
 
 	})
 
@@ -225,3 +165,73 @@ func main() {
 
 	// lambda.Start(HandleRequest)
 }
+
+//
+//
+//
+//
+//
+//
+
+// signature := r.Header.Get("X-Signature-Ed25519")
+// 	sig, err := hex.DecodeString(signature)
+// 	if err != nil || len(sig) != ed25519.SignatureSize {
+// 		// resp.StatusCode = 401
+// 		// resp.Body = "Failed manual len check"
+// 		log.Println("get sig error")
+
+// 		http.Error(w, "header key error", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	timestamp := r.Header.Get("X-Signature-Timestamp")
+// 	if timestamp == "" {
+// 		// resp.StatusCode = 401
+// 		// resp.Body = "Failed on find timestamp"
+// 		// return resp, nil
+// 		log.Println("get timestamp error")
+// 		http.Error(w, "timestamp error", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	var msg bytes.Buffer
+// 	defer r.Body.Close()
+// 	bodyBytes, err := io.ReadAll(r.Body)
+// 	if err != nil {
+// 		log.Println("error reading body")
+// 		http.Error(w, "error reading body", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	msg.WriteString(timestamp)
+// 	msg.WriteString(string(bodyBytes))
+// 	if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
+// 		log.Println("error verifying")
+// 		http.Error(w, "verify failed", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	// fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
+// 	// w.Header().Set()
+// 	log.Println("After verify")
+// 	w.WriteHeader(http.StatusOK)
+// 	w.Write([]byte("Return this string"))
+// 	log.Println("Public key from main")
+// 	log.Println(publicKey)
+
+// 	log.Println("headers main")
+// 	log.Printf("%#v", r.Header)
+
+// 	publicKeyDecoded, _ := hex.DecodeString(publicKey)
+
+// 	verified := interactions.Verify(r, ed25519.PublicKey(publicKeyDecoded))
+// 	if !verified {
+// 		http.Error(w, "signature mismatch", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	if !discordgo.VerifyInteraction(r, publicKey) {
+// 		log.Println("error signature did not verify")
+// 		http.Error(w, "signature mismatch", http.StatusUnauthorized)
+// 		return
+// 	}
