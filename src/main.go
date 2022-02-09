@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -63,9 +64,6 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		return resp, nil
 	}
 
-	log.Println("receieved interaction?")
-	log.Printf("%#v", req.Body)
-
 	var interaction discordgo.Interaction
 	s, err := strconv.Unquote(req.Body)
 	if err != nil {
@@ -76,12 +74,21 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	if err != nil {
 		log.Printf("error: %s", err)
 	}
-
-	dResp := discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseType(interaction.Type),
-		Data: &discordgo.InteractionResponseData{
-			Content: "your interaction",
-		},
+	var dResp discordgo.InteractionResponse
+	if interaction.Type == discordgo.InteractionPing {
+		dResp = discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseType(interaction.Type),
+			Data: &discordgo.InteractionResponseData{
+				Content: "pong",
+			},
+		}
+	} else {
+		dResp = discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: fmt.Sprintf("Heard %s", interaction.Member.User.Username),
+			},
+		}
 	}
 
 	responseData, err := json.Marshal(dResp)
