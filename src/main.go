@@ -30,6 +30,10 @@ var (
 	publicKey string
 )
 
+type Response struct {
+	StatusCode int
+}
+
 // For command line startup
 // TODO::Container, cloud, blah blah blah
 
@@ -136,7 +140,7 @@ func main() {
 
 	})
 
-	lambda.Start(httpadapter.NewV2(http.DefaultServeMux).ProxyWithContext)
+	lambda.Start(httpadapter.NewV2(http.DefaultServeMux).Proxy)
 
 	// sess := session.Must(session.NewSession())
 	// // AWS config for client creation
