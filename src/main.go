@@ -7,14 +7,14 @@ import (
 	"encoding/hex"
 	"flag"
 	"log"
-	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
+	"github.com/gin-gonic/gin"
 	"github.com/iancullinane/discordgo"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
@@ -28,6 +28,7 @@ var (
 var (
 	sess      *session.Session
 	publicKey string
+	ginLambda *ginadapter.GinLambda
 )
 
 type Response struct {
@@ -104,43 +105,66 @@ func init() {
 	log.Println(*keyFromSSM.Parameter.Value)
 
 	publicKey = *keyFromSSM.Parameter.Value
+	typedKey, _ := hex.DecodeString(publicKey)
+	// stdout and stderr are sent to AWS CloudWatch Logs
+
+	log.Printf("Gin cold start")
+	r := gin.Default()
+	r.Any("/", func(c *gin.Context) {
+		if !discordgo.VerifyInteraction(c.Request, typedKey) {
+			c.JSON(400, gin.H{"error": "failed"})
+			return
+		}
+		c.JSON(200, gin.H{
+			"message": "pong",
+		})
+	})
+
+	ginLambda = ginadapter.New(r)
+
 }
 
 //
 // Main
 //
+
+func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	// If no name is provided in the HTTP request body, throw an error
+	return ginLambda.ProxyWithContext(ctx, req)
+}
+
 func main() {
 
-	decoded, err := hex.DecodeString(publicKey)
-	if err != nil {
-		log.Println("error decoding publicKey")
-	}
-	log.Println(decoded)
+	// decoded, err := hex.DecodeString(publicKey)
+	// if err != nil {
+	// 	log.Println("error decoding publicKey")
+	// }
+	// log.Println(decoded)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		log.Println("---- Make request")
-		log.Printf("%#v", r.Header.Get("X-Signature-Ed25519"))
-		log.Printf("%#v", r.Header.Get("X-Signature-Timestamp"))
+	// 	log.Println("---- Make request")
+	// 	log.Printf("%#v", r.Header.Get("X-Signature-Ed25519"))
+	// 	log.Printf("%#v", r.Header.Get("X-Signature-Timestamp"))
 
-		log.Printf("%#v", r)
-		log.Println("-------------")
+	// 	log.Printf("%#v", r)
+	// 	log.Println("-------------")
 
-		if discordgo.VerifyInteraction(r, decoded) {
-			log.Println("verified")
-			// w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			// json.NewEncoder(w).Encode(r.Body)
-			return
-		} else {
-			log.Println("not verified")
-			http.Error(w, "not verified", http.StatusUnauthorized)
-			return
-		}
+	// 	if discordgo.VerifyInteraction(r, decoded) {
+	// 		log.Println("verified")
+	// 		// w.Header().Set("Content-Type", "application/json")
+	// 		w.WriteHeader(http.StatusOK)
+	// 		// json.NewEncoder(w).Encode(r.Body)
+	// 		return
+	// 	} else {
+	// 		log.Println("not verified")
+	// 		http.Error(w, "not verified", http.StatusUnauthorized)
+	// 		return
+	// 	}
 
-	})
+	// })
 
-	lambda.Start(httpadapter.NewV2(http.DefaultServeMux).Proxy)
+	lambda.Start(Handler)
 
 	// sess := session.Must(session.NewSession())
 	// // AWS config for client creation

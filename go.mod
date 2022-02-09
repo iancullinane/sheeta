@@ -9,6 +9,7 @@ require (
 	github.com/awslabs/aws-lambda-go-api-proxy v0.12.0 // indirect
 	github.com/bsdlp/discord-interactions-go v0.0.0-20201227083222-a2ba84473ce8 // indirect
 	github.com/bwmarrin/discordgo v0.23.3-0.20220202194601-aba5dc811da8
+	github.com/gin-gonic/gin v1.7.7 // indirect
 	github.com/golang/mock v1.4.3
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/iancullinane/discordgo v0.23.3-0.20220208184439-8f842cfb1384 // indirect
