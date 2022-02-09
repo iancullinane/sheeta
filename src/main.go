@@ -113,18 +113,29 @@ func init() {
 	r.Any("/v1/", func(c *gin.Context) {
 		if !discordgo.VerifyInteraction(c.Request, typedKey) {
 			log.Println("failed verify")
-			c.JSON(401, gin.H{"error": "unauthorized"})
+			c.JSON(401, gin.H{
+				"statusCode": 401,
+				"body":       c.Request.Body})
 			return
 		}
 		log.Println("passed verify")
 		c.JSON(200, gin.H{
-			"message": "pong",
+			"statusCode": 200,
+			"body":       "Hello",
 		})
 	})
 
 	ginLambda = ginadapter.NewV2(r)
 
 }
+
+// {
+//     "isBase64Encoded": true|false,
+//     "statusCode": httpStatusCode,
+//     "headers": { "headername": "headervalue", ... },
+//     "multiValueHeaders": { "headername": ["headervalue", "headervalue2", ...], ... },
+//     "body": "..."
+// }
 
 //
 // Main
