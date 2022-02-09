@@ -125,11 +125,12 @@ func main() {
 
 		if discordgo.VerifyInteraction(r, decoded) {
 			log.Println("verified")
+			fmt.Fprintf(w, "Success")
 		} else {
 			log.Println("not verified")
+			http.Error(w, "not verified", http.StatusUnauthorized)
+			return
 		}
-
-		fmt.Fprintf(w, "Success")
 
 	})
 
