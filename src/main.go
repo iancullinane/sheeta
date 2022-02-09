@@ -51,6 +51,7 @@ func init() {
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
+	log.Printf("Public Key in main", publicKey)
 	validateResp, err := discord.Validate(publicKey, req)
 	if validateResp != nil || err != nil {
 		return *validateResp, err
