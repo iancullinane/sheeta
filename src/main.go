@@ -15,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
-	"github.com/iancullinane/discordgo"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -114,25 +113,25 @@ func main() {
 	log.Println(decoded)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		// log.Println("---- Make request")
+		// log.Printf("%#v", r.Header.Get("X-Signature-Ed25519"))
+		// log.Printf("%#v", r.Header.Get("X-Signature-Timestamp"))
 
-		log.Println("---- Make request")
-		log.Printf("%#v", r.Header.Get("X-Signature-Ed25519"))
-		log.Printf("%#v", r.Header.Get("X-Signature-Timestamp"))
+		// log.Printf("%#v", r)
+		// log.Println("-------------")
 
-		log.Printf("%#v", r)
-		log.Println("-------------")
-
-		if discordgo.VerifyInteraction(r, decoded) {
-			log.Println("verified")
-			// w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			// json.NewEncoder(w).Encode(r.Body)
-			return
-		} else {
-			log.Println("not verified")
-			http.Error(w, "not verified", http.StatusUnauthorized)
-			return
-		}
+		// if discordgo.VerifyInteraction(r, decoded) {
+		// 	log.Println("verified")
+		// 	// w.Header().Set("Content-Type", "application/json")
+		// 	w.WriteHeader(http.StatusOK)
+		// 	// json.NewEncoder(w).Encode(r.Body)
+		// 	return
+		// } else {
+		// 	log.Println("not verified")
+		// 	http.Error(w, "not verified", http.StatusUnauthorized)
+		// 	return
+		// }
 
 	})
 
