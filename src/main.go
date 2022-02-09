@@ -6,7 +6,6 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
+	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -96,8 +96,8 @@ func init() {
 	// 	panic(err)
 	// }
 
-	// log.Println("From init")
-	// log.Println(*keyFromSSM.Parameter.Value)
+	log.Println("From init")
+	log.Println(*keyFromSSM.Parameter.Value)
 
 	publicKey = *keyFromSSM.Parameter.Value
 }
@@ -107,17 +107,26 @@ func init() {
 //
 func main() {
 
+	decoded, err := hex.DecodeString(publicKey)
+	if err != nil {
+		log.Println("error decoding publicKey")
+	}
+	log.Println(decoded)
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		log.Println(publicKey)
-		typedKey, err := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
-		if err != nil {
-			log.Println("decode public error")
-			http.Error(w, "decode public error", http.StatusUnauthorized)
-		}
+		log.Println("---- Make request")
+		log.Printf("%#v", r.Header.Get("X-Signature-Ed25519"))
+		log.Printf("%#v", r.Header.Get("X-Signature-Timestamp"))
 
-		log.Println(typedKey)
-		fmt.Fprintf(w, "Successfully did nothing, %q", "some string")
+		log.Printf("%#v", r)
+		log.Println("-------------")
+
+		if discordgo.VerifyInteraction(r, decoded) {
+			log.Println("verified")
+		} else {
+			log.Println("not verified")
+		}
 
 	})
 
@@ -165,73 +174,3 @@ func main() {
 
 	// lambda.Start(HandleRequest)
 }
-
-//
-//
-//
-//
-//
-//
-
-// signature := r.Header.Get("X-Signature-Ed25519")
-// 	sig, err := hex.DecodeString(signature)
-// 	if err != nil || len(sig) != ed25519.SignatureSize {
-// 		// resp.StatusCode = 401
-// 		// resp.Body = "Failed manual len check"
-// 		log.Println("get sig error")
-
-// 		http.Error(w, "header key error", http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	timestamp := r.Header.Get("X-Signature-Timestamp")
-// 	if timestamp == "" {
-// 		// resp.StatusCode = 401
-// 		// resp.Body = "Failed on find timestamp"
-// 		// return resp, nil
-// 		log.Println("get timestamp error")
-// 		http.Error(w, "timestamp error", http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	var msg bytes.Buffer
-// 	defer r.Body.Close()
-// 	bodyBytes, err := io.ReadAll(r.Body)
-// 	if err != nil {
-// 		log.Println("error reading body")
-// 		http.Error(w, "error reading body", http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	msg.WriteString(timestamp)
-// 	msg.WriteString(string(bodyBytes))
-// 	if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
-// 		log.Println("error verifying")
-// 		http.Error(w, "verify failed", http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	// fmt.Fprintf(w, "Successfully did nothing, %q", html.EscapeString(r.URL.Path))
-// 	// w.Header().Set()
-// 	log.Println("After verify")
-// 	w.WriteHeader(http.StatusOK)
-// 	w.Write([]byte("Return this string"))
-// 	log.Println("Public key from main")
-// 	log.Println(publicKey)
-
-// 	log.Println("headers main")
-// 	log.Printf("%#v", r.Header)
-
-// 	publicKeyDecoded, _ := hex.DecodeString(publicKey)
-
-// 	verified := interactions.Verify(r, ed25519.PublicKey(publicKeyDecoded))
-// 	if !verified {
-// 		http.Error(w, "signature mismatch", http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	if !discordgo.VerifyInteraction(r, publicKey) {
-// 		log.Println("error signature did not verify")
-// 		http.Error(w, "signature mismatch", http.StatusUnauthorized)
-// 		return
-// 	}
