@@ -85,8 +85,10 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		}
 		log.Printf("%#v", resp)
 		log.Printf("%#v", resp.Headers)
+		headerSetter := make(map[string]string)
+		headerSetter["Content-Type"] = "application/json"
 		resp.StatusCode = 200
-		resp.Headers["Content-Type"] = "application/json"
+		resp.Headers = headerSetter
 	}
 
 	responseData, err := json.Marshal(dResp)
