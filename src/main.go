@@ -116,7 +116,7 @@ func init() {
 			c.JSON(401, gin.H{"error": "unauthorized"})
 			return
 		}
-		log.Println("passed verify"
+		log.Println("passed verify")
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
