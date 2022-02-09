@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
+	"encoding/json"
 	"flag"
 	"log"
 	"os"
@@ -30,7 +31,8 @@ var (
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
-	log.Printf("%#v", req.Body)
+	log.Println("receieved request")
+	log.Printf("%#v", req)
 
 	typedKey, _ := hex.DecodeString("cfa20ac201afc5a130d4b5d8eabcfa186a2fe6eb6f0cc674f767a1253ec6fc63")
 
@@ -59,6 +61,26 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		resp.Headers = req.Headers
 		return resp, nil
 	}
+
+	log.Println("receieved interaction?")
+	log.Printf("%#v", req.Body)
+
+	dResp := discordgo.InteractionResponse{
+		Type: 4,
+		Data: &discordgo.InteractionResponseData{
+			Content: "your interaction",
+		},
+	}
+
+	responseData, err := json.Marshal(dResp)
+	if err != nil {
+		log.Println(err)
+	}
+
+	resp.StatusCode = 200
+	resp.Body = string(responseData)
+
+	log.Printf("%v", resp)
 
 	return resp, nil
 }
