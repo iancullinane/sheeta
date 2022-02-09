@@ -112,9 +112,11 @@ func init() {
 	r := gin.Default()
 	r.Any("/", func(c *gin.Context) {
 		if !discordgo.VerifyInteraction(c.Request, typedKey) {
-			c.JSON(400, gin.H{"error": "failed"})
+			log.Println("failed verify")
+			c.JSON(401, gin.H{"error": "unauthorized"})
 			return
 		}
+		log.Println("passed verify"
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
