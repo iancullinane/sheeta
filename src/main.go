@@ -83,6 +83,8 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 				Content: fmt.Sprintf("Heard %s", interaction.Member.User.Username),
 			},
 		}
+		log.Printf("%#v", resp)
+		log.Printf("%#v", resp.Headers)
 		resp.StatusCode = 200
 		resp.Headers["Content-Type"] = "application/json"
 	}
