@@ -6,6 +6,7 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -127,6 +128,8 @@ func main() {
 		} else {
 			log.Println("not verified")
 		}
+
+		fmt.Fprintf(w, "Success")
 
 	})
 
