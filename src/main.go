@@ -42,10 +42,11 @@ func init() {
 	}
 
 	ssmStore := ssm.New(sess, awsCfg)
-	pKey, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/token"))
+	pKey, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/publicKey"))
 	if err != nil {
 		panic(err)
 	}
+	log.Printf("Public Key in init from ssm", *pKey.Parameter.Value)
 	publicKey = *pKey.Parameter.Value
 }
 
