@@ -40,6 +40,13 @@ func init() {
 		S3ForcePathStyle:              aws.Bool(true),
 		Region:                        aws.String("us-east-1"), // us-east-2 is the destination bucket region
 	}
+
+	ssmStore := ssm.New(sess, awsCfg)
+	pKey, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/token"))
+	if err != nil {
+		panic(err)
+	}
+	publicKey = *pKey.Parameter.Value
 }
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -91,27 +98,10 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 //
 func main() {
 
-	ssmStore := ssm.New(sess, awsCfg)
-	dToken, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/token"))
-	if err != nil {
-		panic(err)
-	}
-
-	apiID, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/app-id"))
-	if err != nil {
-		panic(err)
-	}
-
-	d, err := discordgo.New("Bot " + *dToken.Parameter.Value)
-	if err != nil {
-		panic(err)
-	}
-
 	// Alternate run command to build the webhooks and interactions in Discord
 	if RunSlashBuilder == "create" {
-		log.Println("api value")
-		log.Printf("%#v", *apiID.Parameter.Value)
-		err := application.CreateSlashCommands(*apiID.Parameter.Value, d)
+		ssmStore := ssm.New(sess, awsCfg)
+		err := application.CreateSlashCommands(ssmStore)
 		if err != nil {
 			log.Println(err)
 		}
