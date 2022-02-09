@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -65,12 +64,7 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	}
 
 	var interaction discordgo.Interaction
-	s, err := strconv.Unquote(req.Body)
-	if err != nil {
-		log.Printf("error: %s", err)
-	}
-
-	err = json.Unmarshal([]byte(s), &interaction)
+	err = json.Unmarshal([]byte(req.Body), &interaction)
 	if err != nil {
 		log.Printf("error: %s", err)
 	}
