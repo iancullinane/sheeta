@@ -16,7 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
-	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/discordgo"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -126,6 +126,7 @@ func main() {
 		if discordgo.VerifyInteraction(r, decoded) {
 			log.Println("verified")
 			fmt.Fprintf(w, "Success")
+			return
 		} else {
 			log.Println("not verified")
 			http.Error(w, "not verified", http.StatusUnauthorized)
