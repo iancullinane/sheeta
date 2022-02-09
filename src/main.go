@@ -9,6 +9,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -65,8 +66,19 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	log.Println("receieved interaction?")
 	log.Printf("%#v", req.Body)
 
+	var interaction discordgo.Interaction
+	s, err := strconv.Unquote(req.Body)
+	if err != nil {
+		log.Printf("error: %s", err)
+	}
+
+	err = json.Unmarshal([]byte(s), &interaction)
+	if err != nil {
+		log.Printf("error: %s", err)
+	}
+
 	dResp := discordgo.InteractionResponse{
-		Type: 4,
+		Type: discordgo.InteractionResponseType(interaction.Type),
 		Data: &discordgo.InteractionResponseData{
 			Content: "your interaction",
 		},
