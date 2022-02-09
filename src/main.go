@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/discordgo"
 	"github.com/iancullinane/sheeta/src/application"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
@@ -60,8 +60,6 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		return resp, nil
 	}
 
-	resp.StatusCode = 200
-	resp.Body = req.Body
 	return resp, nil
 }
 
