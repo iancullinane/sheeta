@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
-	"encoding/json"
 	"flag"
 	"log"
 	"net/http"
@@ -125,9 +124,9 @@ func main() {
 
 		if discordgo.VerifyInteraction(r, decoded) {
 			log.Println("verified")
-			w.Header().Set("Content-Type", "application/json")
+			// w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(r.Body)
+			// json.NewEncoder(w).Encode(r.Body)
 			return
 		} else {
 			log.Println("not verified")
