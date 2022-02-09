@@ -110,7 +110,7 @@ func init() {
 
 	log.Printf("Gin cold start")
 	r := gin.Default()
-	r.Any("/", func(c *gin.Context) {
+	r.Any("/v1/", func(c *gin.Context) {
 		if !discordgo.VerifyInteraction(c.Request, typedKey) {
 			log.Println("failed verify")
 			c.JSON(401, gin.H{"error": "unauthorized"})
