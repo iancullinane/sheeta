@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/iancullinane/discordgo"
 	"github.com/iancullinane/sheeta/src/application"
+	"github.com/iancullinane/sheeta/src/internal/bot"
 	"github.com/iancullinane/sheeta/src/internal/discord"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
@@ -63,36 +63,10 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	if err != nil {
 		log.Printf("error: %s", err)
 	}
-	var dResp discordgo.InteractionResponse
-	var resp events.APIGatewayV2HTTPResponse
-	if interaction.Type == discordgo.InteractionPing {
-		dResp = discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseType(interaction.Type),
-			Data: &discordgo.InteractionResponseData{
-				Content: "pong",
-			},
-		}
-	} else {
-		dResp = discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: fmt.Sprintf("Heard %s", interaction.Member.User.Username),
-			},
-		}
 
-		headerSetter := make(map[string]string)
-		headerSetter["Content-Type"] = "application/json"
-		resp.StatusCode = 200
-		resp.Headers = headerSetter
-	}
+	processedInteraction := bot.ProcessInteraction(interaction)
 
-	responseData, err := json.Marshal(dResp)
-	if err != nil {
-		log.Println(err)
-	}
-
-	resp.Body = string(responseData)
-	return resp, nil
+	return processedInteraction, nil
 }
 
 //
