@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/iancullinane/discordgo"
+	"github.com/bwmarrin/discordgo"
 )
 
 // func MakeReturn(r discordgo.InteractionResponse, status int)

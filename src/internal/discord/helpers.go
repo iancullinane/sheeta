@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"encoding/hex"
-	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 )
 
 func Validate(publicKey string, req events.APIGatewayV2HTTPRequest) (*events.APIGatewayV2HTTPResponse, error) {
-
-	log.Printf("Public Key in validate %s", publicKey)
 
 	var resp events.APIGatewayV2HTTPResponse
 	typedKey, err := hex.DecodeString(publicKey)
@@ -20,8 +17,6 @@ func Validate(publicKey string, req events.APIGatewayV2HTTPRequest) (*events.API
 		resp.Body = "Could not decode public key"
 		return &resp, err
 	}
-
-	log.Printf("Public Key after decoding %v", typedKey)
 
 	signature := req.Headers["x-signature-ed25519"]
 	sig, err := hex.DecodeString(signature)

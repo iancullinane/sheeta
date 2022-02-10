@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/iancullinane/discordgo"
+	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/application"
 	"github.com/iancullinane/sheeta/src/internal/bot"
 	"github.com/iancullinane/sheeta/src/internal/discord"
@@ -46,13 +46,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("Public Key in init from ssm", *pKey.Parameter.Value)
+
 	publicKey = *pKey.Parameter.Value
 }
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
-	log.Printf("Public Key in main", publicKey)
+	log.Println(req.Body)
+	log.Println(json.Marshal(req.Body))
+
 	validateResp, err := discord.Validate(publicKey, req)
 	if validateResp != nil || err != nil {
 		return *validateResp, err

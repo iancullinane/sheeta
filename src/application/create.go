@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/iancullinane/discordgo"
+	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -21,7 +21,21 @@ func CreateSlashCommands(ssmStore *ssm.SSM) error {
 		panic(err)
 	}
 
+	d.Open()
+	defer d.Close()
+
 	for _, v := range commands {
+
+		cmds, _ := d.ApplicationCommands("703973863335264286", "")
+		log.Printf("%#v", cmds)
+		for _, v := range cmds {
+			err := d.ApplicationCommandDelete("703973863335264286", "", v.ID)
+			if err != nil {
+				log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
+			}
+		}
+
+		log.Println("Add " + v.Name)
 		_, err := d.ApplicationCommandCreate("703973863335264286", "", v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
@@ -40,36 +54,5 @@ func CreateSlashCommands(ssmStore *ssm.SSM) error {
 	// 	}
 	// }
 
-	// cmds, _ := s.ApplicationCommands("703973863335264286", "")
-	// for _, v := range cmds {
-	// 	log.Printf("%#v", v)
-
-	// }
-
-	// for _, v := range cmds {
-	// 	err := s.ApplicationCommandDelete(v.ApplicationID, "", v.ID)
-	// 	if err != nil {
-	// 		log.Printf("%#v", err)
-	// 	}
-	// }
-
-	// for _, v := range commands {
-	// 	_, err := s.ApplicationCommandDelete("703973863335264286")
-	// 	if err != nil {
-	// 		log.Panicf("Cannot create '%v' command: %v", v.Name, err)
-	// 	}
-	// }
-
 	return nil
 }
-
-// func BasicInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) {
-// 	// "basic-command": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-// 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-// 		Type: discordgo.InteractionResponseChannelMessageWithSource,
-// 		Data: &discordgo.InteractionResponseData{
-// 			Content: "Hey there! Congratulations, you just executed your first slash command",
-// 		},
-// 	})
-// 	// },
-// }
