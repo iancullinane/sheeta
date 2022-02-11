@@ -9,7 +9,12 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// func MakeReturn(r discordgo.InteractionResponse, status int)
+var defaultHeader map[string]string
+
+func init() {
+	defaultHeader := make(map[string]string)
+	defaultHeader["Content-Type"] = "application/json"
+}
 
 func MakeResponse(msg string) string {
 	callback := discordgo.InteractionResponse{
@@ -18,6 +23,9 @@ func MakeResponse(msg string) string {
 			Content: msg,
 		},
 	}
+
+	// Turn to string before sending back to apigateway
+	// todo::figure out why proxy wasn't working and switch
 	responseData, err := json.Marshal(callback)
 	if err != nil {
 		log.Println(err)
@@ -38,24 +46,20 @@ func MakePing() events.APIGatewayV2HTTPResponse {
 	// resp.Body = string(responseData)
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
+		Headers:    defaultHeader,
 		Body:       string(responseData),
 	}
 }
 
 func ProcessInteraction(interaction discordgo.Interaction) events.APIGatewayV2HTTPResponse {
-	var resp events.APIGatewayV2HTTPResponse
 
-	// var callback discordgo.InteractionResponse
 	if interaction.Type == discordgo.InteractionPing {
 		return MakePing()
 	}
 
-	headerSetter := make(map[string]string)
-	headerSetter["Content-Type"] = "application/json"
-	resp.StatusCode = 200
-	resp.Headers = headerSetter
-
-	resp.Body = string(MakeResponse(fmt.Sprintf("Heard %s", interaction.Member.User.Username)))
-
-	return resp
+	return events.APIGatewayV2HTTPResponse{
+		Body:       string(MakeResponse(fmt.Sprintf("Heard %s", interaction.Member.User.Username))),
+		Headers:    defaultHeader,
+		StatusCode: 200,
+	}
 }

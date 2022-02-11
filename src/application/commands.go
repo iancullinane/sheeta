@@ -11,19 +11,44 @@ var (
 			Description: "Manage the zomboid server",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Type:        discordgo.ApplicationCommandOptionBoolean,
-					Name:        "start-server",
-					Description: "Start the server true/false",
-					Required:    true,
+					Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
+					Name:        "server",
+					Description: "Control the server",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "run",
+							Description: "Start and start the zomboid server",
+							Type:        discordgo.ApplicationCommandOptionBoolean,
+							Required:    true,
+						},
+					},
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
+					Name:        "scream",
+					Description: "Commands related to server access",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "for-help",
+							Description: "Get server status",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+						},
+						{
+							Name:        "to-be-found",
+							Description: "Give IP for security group",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+						},
+					},
+				},
+				// {
+				// 	Type:        discordgo.ApplicationCommandOptionBoolean,
+				// 	Name:        "run-server",
+				// 	Description: "Start the server true/false",
+				// 	Required:    true,
+				// },
 			},
 		},
-		// {
-		// 	Name: "basic-command",
-		// 	// All commands and options must have a description
-		// 	// Commands/options without description will fail the registration
-		// 	// of the command.
-		// 	Description: "Basic command",
-		// },
 	}
 )
