@@ -1,8 +1,8 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
-	"io"
 	"log"
 	"net/http"
 
@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
+	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/internal/discord"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
@@ -79,11 +80,18 @@ func main() {
 		if !discord.Validate(publicKey, r) {
 			log.Println("failed")
 		}
-		// if validateResp != nil || err != nil {
-		// 	return err
-		// }
 
-		io.WriteString(w, "Hello")
+		resp := discordgo.InteractionResponse{
+
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Some messafe",
+			},
+		}
+
+		json.NewEncoder(w).Encode(resp)
+		log.Println("encoded a response")
+
 	})
 
 	lambda.Start(httpadapter.New(http.DefaultServeMux).ProxyWithContext)

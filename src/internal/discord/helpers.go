@@ -22,13 +22,13 @@ func Validate(publicKey string, req *http.Request) bool {
 	signature := req.Header.Get("X-Signature-Ed25519")
 	sig, err := hex.DecodeString(signature)
 	if err != nil || len(sig) != ed25519.SignatureSize {
-		log.Println("%w", "failed manual length check")
+		log.Printf("%s", "failed manual length check")
 		return false
 	}
 
 	timestamp := req.Header.Get("X-Signature-Timestamp")
 	if timestamp == "" {
-		log.Println("%w", "failed timestamp")
+		log.Printf("%s", "failed timestamp")
 		return false
 	}
 
@@ -57,9 +57,10 @@ func Validate(publicKey string, req *http.Request) bool {
 
 	// msg.WriteString(body)
 	if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
-		log.Println("%w", "failed verify")
+		log.Printf("%s", "failed verify")
 		return false
 	}
 
+	log.Printf("%s", "passed verify")
 	return true
 }
