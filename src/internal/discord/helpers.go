@@ -4,16 +4,14 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"encoding/hex"
-	"encoding/json"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
 
 // func Validate(publicKey string, req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
 func Validate(publicKey string, req *http.Request) bool {
-
-	log.Println(json.Marshal(req))
 
 	typedKey, err := hex.DecodeString(publicKey)
 	if err != nil {
@@ -34,12 +32,30 @@ func Validate(publicKey string, req *http.Request) bool {
 		return false
 	}
 
+	//
+	//
+
 	var msg bytes.Buffer
 	msg.WriteString(timestamp)
 
-	b, _ := io.ReadAll(req.Body)
+	defer req.Body.Close()
+	var body bytes.Buffer
 
-	msg.WriteString(string(b))
+	// at the end of the function, copy the original body back into the request
+	defer func() {
+		req.Body = ioutil.NopCloser(&body)
+	}()
+
+	// copy body into buffers
+	_, err = io.Copy(&msg, io.TeeReader(req.Body, &body))
+	if err != nil {
+		return false
+	}
+
+	//
+	//
+
+	// msg.WriteString(body)
 	if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
 		log.Println("%w", "failed verify")
 		return false

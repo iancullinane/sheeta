@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"io"
 	"log"
@@ -76,7 +75,6 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 		log.Println(r)
-		log.Println(json.Marshal(r.Body))
 
 		if !discord.Validate(publicKey, r) {
 			log.Println("failed")
