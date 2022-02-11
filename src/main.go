@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
+	"github.com/iancullinane/sheeta/src/internal/discord"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -77,9 +78,11 @@ func main() {
 		log.Println(r)
 		log.Println(json.Marshal(r.Body))
 
-		// validateResp, err := discord.Validate(publicKey, r)
+		if !discord.Validate(publicKey, r) {
+			log.Println("failed")
+		}
 		// if validateResp != nil || err != nil {
-		// 	return *validateResp, err
+		// 	return err
 		// }
 
 		io.WriteString(w, "Hello")

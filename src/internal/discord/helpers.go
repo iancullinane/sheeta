@@ -4,43 +4,46 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"encoding/hex"
-
-	"github.com/aws/aws-lambda-go/events"
+	"encoding/json"
+	"io"
+	"log"
+	"net/http"
 )
 
-func Validate(publicKey string, req events.APIGatewayV2HTTPRequest) (*events.APIGatewayV2HTTPResponse, error) {
+// func Validate(publicKey string, req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
+func Validate(publicKey string, req *http.Request) bool {
 
-	var resp events.APIGatewayV2HTTPResponse
+	log.Println(json.Marshal(req))
+
 	typedKey, err := hex.DecodeString(publicKey)
 	if err != nil {
-		resp.StatusCode = 401
-		resp.Body = "Could not decode public key"
-		return &resp, err
+		log.Println("%w", err)
+		return false
 	}
 
-	signature := req.Headers["x-signature-ed25519"]
+	signature := req.Header.Get("X-Signature-Ed25519")
 	sig, err := hex.DecodeString(signature)
 	if err != nil || len(sig) != ed25519.SignatureSize {
-		resp.StatusCode = 401
-		resp.Body = "Failed manual len check"
-		return &resp, err
+		log.Println("%w", "failed manual length check")
+		return false
 	}
 
-	timestamp := req.Headers["x-signature-timestamp"]
+	timestamp := req.Header.Get("X-Signature-Timestamp")
 	if timestamp == "" {
-		resp.StatusCode = 401
-		resp.Body = "Failed on find timestamp"
-		return &resp, nil
+		log.Println("%w", "failed timestamp")
+		return false
 	}
 
 	var msg bytes.Buffer
 	msg.WriteString(timestamp)
-	msg.WriteString(req.Body)
+
+	b, _ := io.ReadAll(req.Body)
+
+	msg.WriteString(string(b))
 	if !ed25519.Verify(typedKey, msg.Bytes(), sig) {
-		resp.StatusCode = 401
-		resp.Headers = req.Headers
-		return &resp, nil
+		log.Println("%w", "failed verify")
+		return false
 	}
 
-	return nil, nil
+	return true
 }
