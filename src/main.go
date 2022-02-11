@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -89,9 +91,15 @@ func main() {
 			},
 		}
 
-		json.NewEncoder(w).Encode(resp)
-		log.Println("encoded a response")
+		b, err := json.Marshal(resp)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
+		log.Println("passed")
+		log.Println(string(b))
+		io.WriteString(w, string(b))
 	})
 
 	lambda.Start(httpadapter.New(http.DefaultServeMux).ProxyWithContext)
