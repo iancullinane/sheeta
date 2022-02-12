@@ -90,44 +90,16 @@ func mainTwo() {
 func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-
-		log.Println(r)
-
-		// if !discord.Validate(publicKey, r) {
-		// 	log.Println("failed")
-		// }
-
-		// resp := discordgo.InteractionResponse{
-
-		// 	Type: discordgo.InteractionResponseChannelMessageWithSource,
-		// 	Data: &discordgo.InteractionResponseData{
-		// 		Content: "Some messafe",
-		// 	},
-		// }
-
-		w.Header().Set("Content-Type", "application/json")
 		// if err := json.NewEncoder(w).Encode(resp); err != nil {
 		// 	http.Error(w, "failed to encode JSON", http.StatusInternalServerError)
 		// 	return
 		// }
 		response := map[string]string{"number": "five"}
-		w.Header().Set("Content-Type", "application/json") // and this
+		w.Header().Set("content-type", "application/json") // and this
 		json.NewEncoder(w).Encode(response)
 	})
 
 	lambda.Start(httpadapter.New(http.DefaultServeMux).ProxyWithContext)
-
-	// // Alternate run command to build the webhooks and interactions in Discord
-	// if RunSlashBuilder == "create" {
-	// 	ssmStore := ssm.New(sess, awsCfg)
-	// 	err := application.CreateSlashCommands(ssmStore)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
-	// 	os.Exit(0)
-	// }
-
-	// lambda.Start(HandleRequest)
 }
 
 // https://stackoverflow.com/questions/52782057/golang-aws-api-gateway-invalid-character-e-looking-for-beginning-of-value
