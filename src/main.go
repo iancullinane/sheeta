@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 
@@ -115,7 +114,7 @@ func main() {
 
 		log.Println("passed")
 		log.Println(string(b))
-		io.WriteString(w, string(b))
+		w.Write(b)
 	})
 
 	lambda.Start(httpadapter.New(http.DefaultServeMux).ProxyWithContext)
