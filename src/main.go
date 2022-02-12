@@ -14,7 +14,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
 	"github.com/bwmarrin/discordgo"
-	"github.com/iancullinane/sheeta/src/internal/discord"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -70,6 +69,23 @@ func init() {
 // 	return processedInteraction, nil
 // }
 
+type Alpha struct {
+	One     string `json:"one"`
+	PropTwo int    `json:"prop_2"`
+}
+
+func mainTwo() {
+	testA := Alpha{One: "PropOne", PropTwo: 2}
+	b, err := json.Marshal(testA)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	log.Println(string(b))
+
+}
+
 //
 // Main
 //
@@ -79,9 +95,9 @@ func main() {
 
 		log.Println(r)
 
-		if !discord.Validate(publicKey, r) {
-			log.Println("failed")
-		}
+		// if !discord.Validate(publicKey, r) {
+		// 	log.Println("failed")
+		// }
 
 		resp := discordgo.InteractionResponse{
 
