@@ -1,17 +1,17 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
@@ -85,64 +85,36 @@ func mainTwo() {
 
 }
 
-func handleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
-	resp := discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "Some messafe",
-		},
-	}
-
-	b, err := json.Marshal(resp)
-	if err != nil {
-		fmt.Println(err)
-		// return
-	}
-
-	log.Println("passed")
-	log.Println(string(b))
-
-	return events.APIGatewayProxyResponse{
-		Body: string(b),
-	}, nil
-}
-
 //
 // Main
 //
 func main() {
 
-	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-	// 	log.Println(r)
+		log.Println(r)
 
-	// 	// if !discord.Validate(publicKey, r) {
-	// 	// 	log.Println("failed")
-	// 	// }
+		// if !discord.Validate(publicKey, r) {
+		// 	log.Println("failed")
+		// }
 
-	// 	resp := discordgo.InteractionResponse{
+		resp := discordgo.InteractionResponse{
 
-	// 		Type: discordgo.InteractionResponseChannelMessageWithSource,
-	// 		Data: &discordgo.InteractionResponseData{
-	// 			Content: "Some messafe",
-	// 		},
-	// 	}
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Some messafe",
+			},
+		}
 
-	// 	b, err := json.Marshal(resp)
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 		return
-	// 	}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			http.Error(w, "failed to encode JSON", http.StatusInternalServerError)
+			return
+		}
 
-	// 	log.Println("passed")
-	// 	log.Println(string(b))
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	w.Write(b)
-	// })
+	})
 
-	lambda.Start(handleRequest)
-	// lambda.Start(httpadapter.New(http.DefaultServeMux).ProxyWithContext)
+	lambda.Start(httpadapter.New(http.DefaultServeMux).ProxyWithContext)
 
 	// // Alternate run command to build the webhooks and interactions in Discord
 	// if RunSlashBuilder == "create" {
@@ -156,3 +128,27 @@ func main() {
 
 	// lambda.Start(HandleRequest)
 }
+
+// https://stackoverflow.com/questions/52782057/golang-aws-api-gateway-invalid-character-e-looking-for-beginning-of-value
+// func handleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+// 	resp := discordgo.InteractionResponse{
+// 		Type: discordgo.InteractionResponseChannelMessageWithSource,
+// 		Data: &discordgo.InteractionResponseData{
+// 			Content: "Some messafe",
+// 		},
+// 	}
+
+// 	b, err := json.Marshal(resp)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		// return
+// 	}
+
+// 	log.Println("passed")
+// 	log.Println(string(b))
+
+// 	return events.APIGatewayProxyResponse{
+// 		Body: string(b),
+// 	}, nil
+// }
