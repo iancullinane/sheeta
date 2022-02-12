@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
-	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -98,20 +97,22 @@ func main() {
 		// 	log.Println("failed")
 		// }
 
-		resp := discordgo.InteractionResponse{
+		// resp := discordgo.InteractionResponse{
 
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Some messafe",
-			},
-		}
+		// 	Type: discordgo.InteractionResponseChannelMessageWithSource,
+		// 	Data: &discordgo.InteractionResponseData{
+		// 		Content: "Some messafe",
+		// 	},
+		// }
 
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
-			http.Error(w, "failed to encode JSON", http.StatusInternalServerError)
-			return
-		}
-
+		// if err := json.NewEncoder(w).Encode(resp); err != nil {
+		// 	http.Error(w, "failed to encode JSON", http.StatusInternalServerError)
+		// 	return
+		// }
+		response := map[string]string{"number": "five"}
+		w.Header().Set("Content-Type", "application/json") // and this
+		json.NewEncoder(w).Encode(response)
 	})
 
 	lambda.Start(httpadapter.New(http.DefaultServeMux).ProxyWithContext)
