@@ -114,6 +114,7 @@ func main() {
 
 		log.Println("passed")
 		log.Println(string(b))
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(b)
 	})
 
