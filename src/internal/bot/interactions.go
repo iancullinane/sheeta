@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/bwmarrin/discordgo"
 )
@@ -56,7 +57,10 @@ func (b *bot) ZomboidActionHandler(data discordgo.ApplicationCommandInteractionD
 		DNSName: aws.String("adventurebrave.com"),
 	})
 	if err != nil {
-		return fmt.Sprintf("Failed cloud task: %s", err)
+		if aerr, ok := err.(awserr.Error); ok {
+			return fmt.Sprintf("STS Error: %s", aerr)
+		}
+		return fmt.Sprintf("Not AWS error: %s", err)
 	}
 
 	return *hz.HostedZoneId
