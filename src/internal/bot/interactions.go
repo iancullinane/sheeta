@@ -67,7 +67,7 @@ func (b *bot) ZomboidActionHandler(data discordgo.ApplicationCommandInteractionD
 	})
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
-			return fmt.Sprintf("STS Error: %s", aerr)
+			return fmt.Sprintf("AWS error in handler: %s", aerr)
 		}
 		return fmt.Sprintf("Not AWS error: %s", err)
 	}

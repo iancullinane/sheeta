@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -57,7 +57,10 @@ func init() {
 		DNSName: aws.String("adventurebrave.com"),
 	})
 	if err != nil {
-		fmt.Printf("Failed cloud task: %s", err)
+		if aerr, ok := err.(awserr.Error); ok {
+			log.Printf("AWS Error: %s", aerr)
+		}
+		log.Printf("Not AWS error: %s", err)
 	}
 	log.Println(hz.DNSName)
 
@@ -75,7 +78,10 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		DNSName: aws.String("adventurebrave.com"),
 	})
 	if err != nil {
-		fmt.Printf("Failed cloud task: %s", err)
+		if aerr, ok := err.(awserr.Error); ok {
+			log.Printf("AWS Error: %s", aerr)
+		}
+		log.Printf("Not AWS error: %s", err)
 	}
 	log.Println(hz.DNSName)
 
@@ -130,7 +136,10 @@ func main() {
 		DNSName: aws.String("adventurebrave.com"),
 	})
 	if err != nil {
-		fmt.Printf("Failed cloud task: %s", err)
+		if aerr, ok := err.(awserr.Error); ok {
+			log.Printf("AWS error: %s", aerr)
+		}
+		log.Printf("Not AWS error: %s", err)
 	}
 	log.Println(hz.DNSName)
 
