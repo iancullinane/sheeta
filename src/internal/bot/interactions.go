@@ -50,6 +50,15 @@ func (b *bot) ProcessInteraction(interaction discordgo.Interaction) (string, err
 func (b *bot) ZomboidActionHandler(data discordgo.ApplicationCommandInteractionData) string {
 	log.Println("Zomboid Action Handler")
 
+	// stsCreds := credentials.NewCredentials(&stscreds.AssumeRoleProvider{
+	// 	Client:       sts.New(b.r.Session),
+	// 	RoleARN:      roleArn,
+	// 	Duration:     stscreds.DefaultDuration,
+	// 	ExpiryWindow: time.Duration(float32(stscreds.DefaultDuration) * .9),
+	// })
+
+	// b.r.Session.Config.Credentials = stsCreds
+
 	// b.r.AwsConfig.cre
 
 	r53 := route53.New(b.r.Session, b.r.AwsConfig)
