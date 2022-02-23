@@ -30,7 +30,7 @@ steps:
         from_secret: ian_aws_secret
       repo: sheeta
       dockerfile: ecr.Dockerfile
-      registry: 346096930733.dkr.ecr.us-east-1.amazonaws.com
+      registry: 123456789.dkr.ecr.us-east-1.amazonaws.com
       tags:
         - ${DRONE_COMMIT_SHA}
         - lambda-version
