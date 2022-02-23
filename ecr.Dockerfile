@@ -1,5 +1,4 @@
-# Docker container with nothing
-FROM scratch
+FROM public.ecr.aws/lambda/go:1
 
 # Copy the binary into the container
 ADD bin/main /main

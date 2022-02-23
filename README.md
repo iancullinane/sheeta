@@ -1,4 +1,7 @@
+
 # Sheeta
+
+### This is all lies because now it is a lambda with http instead of a websocket and everything is a mess now
 
 Cloud bot for discord (you don't have to call it Sheeta)
 
@@ -13,9 +16,11 @@ Clone this repo
 
 ## Then run it like this
 
-```
+---
+```markdown
 AWS_REGION=<region> go run main.go -t <bot-token>
 ```
+---
 
 ###
 

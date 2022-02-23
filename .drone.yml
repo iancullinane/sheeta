@@ -8,18 +8,20 @@ steps:
     commands:
       - ./build/build.sh
 
-  # - name: docker push
-  #   image: plugins/docker
+  # - name: publish
+  #   image: plugins/ecr
   #   settings:
-  #     repo: eignhpants/sheeta
-  #     username:
-  #       from_secret: dh_user_name
-  #     password:
-  #       from_secret: dh_pw
-  #   publish:
-  #     image: eignhpants/sheeta
+  #     access_key:
+  #       from_secret: ian_aws_key
+  #     secret_key:
+  #       from_secret: ian_aws_secret
+  #     repo: sheeta
+  #     registry: 346096930733.dkr.ecr.us-east-1.amazonaws.com
+  #     tags:
+  #       - ${DRONE_COMMIT_SHA}
+  #       - latest
 
-  - name: publish
+  - name: publish-ecr
     image: plugins/ecr
     settings:
       access_key:
@@ -27,4 +29,8 @@ steps:
       secret_key:
         from_secret: ian_aws_secret
       repo: sheeta
-      registry: 346096930733.dkr.ecr.us-east-1.amazonaws.com
+      dockerfile: ecr.Dockerfile
+      registry: 123456789.dkr.ecr.us-east-1.amazonaws.com
+      tags:
+        - ${DRONE_COMMIT_SHA}
+        - lambda-version

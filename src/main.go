@@ -1,95 +1,157 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"flag"
-	"fmt"
+	"log"
 	"os"
-	"os/signal"
-	"syscall"
 
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/bwmarrin/discordgo"
-	"github.com/iancullinane/sheeta/src/config"
+	"github.com/iancullinane/sheeta/src/application"
 	"github.com/iancullinane/sheeta/src/internal/bot"
-	"github.com/iancullinane/sheeta/src/internal/cloud"
-	"github.com/sirupsen/logrus"
+	"github.com/iancullinane/sheeta/src/internal/chat"
+	"github.com/iancullinane/sheeta/src/internal/discord"
+	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
-// Variables used for command line parameters
+// // Variables used for command line parameters
 var (
-	Token string
+	Token           string
+	RunSlashBuilder string
 )
 
-// For command line startup
-// TODO::Container, cloud, blah blah blah
+var sess *session.Session
+var awsCfg *aws.Config
+var publicKey string
+
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
+	flag.StringVar(&RunSlashBuilder, "b", "", "Slash command builder")
 	flag.Parse()
-}
 
-func main() {
-
-	// Set up logger to be used by package clients
-	logger := logrus.New()
-	logger.Level = logrus.InfoLevel
-	logger.Out = os.Stdout
-
-	// Set up config
-	var conf *config.Config
-	conf = conf.BuildConfigFromFile("./src/config/base.yaml")
-
-	sess := session.Must(session.NewSession())
-	// AWS config for client creation
-	awsConfigUsEast2 := &aws.Config{
+	sess = session.Must(session.NewSession())
+	awsCfg = &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		S3ForcePathStyle:              aws.Bool(true),
-		Region:                        aws.String("us-east-2"), // us-east-2 is the destination bucket region
+		Region:                        aws.String("us-east-1"), // us-east-2 is the destination bucket region
 	}
 
-	// Create service client value configured for credentials
-	// from assumed role.
-	s3svc := s3manager.NewDownloader(sess)
-	cfnSvc := cloudformation.New(sess, awsConfigUsEast2)
-
-	// This effectively defines what aws services are available
-	// TODO::I want to move this into its module, but it causes tests to break
-	// because of a region error related to the credential chain
-	cr := cloud.Services{
-		S3: s3svc,
-		CF: cfnSvc,
-	}
-
-	var bot []bot.Module
-	c := cloud.NewCloud(cr, conf.GetValueMap())
-	bot = append(bot, c)
-
-	// Create a new Discord session using the provided bot token.
-	d, err := discordgo.New("Bot " + Token)
+	ssmStore := ssm.New(sess, awsCfg)
+	pKey, err := services.GetParameter(ssmStore, aws.String("/some/key"))
 	if err != nil {
-		logger.Fatalf("Could not start bot: %s", err)
+		panic(err)
 	}
 
-	// Register modules handlers to discord bot
-	for _, mod := range bot {
-		d.AddHandler(mod.ExportHandler())
-	}
+	log.Println("in init")
 
-	// Open a websocket connection to Discord and begin listening.
-	err = d.Open()
+	r53 := route53.New(sess, awsCfg)
+	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
+		DNSName: aws.String("whatever.com"),
+	})
 	if err != nil {
-		fmt.Println("error opening connection,", err)
-		return
+		if aerr, ok := err.(awserr.Error); ok {
+			log.Printf("AWS Error: %s", aerr)
+		}
+		log.Printf("Not AWS error: %s", err)
+	}
+	log.Println(hz.DNSName)
+
+	publicKey = *pKey.Parameter.Value
+}
+
+func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+
+	log.Println(req.Body)
+	log.Println(json.Marshal(req.Body))
+
+	log.Println("in handler")
+	r53 := route53.New(sess, awsCfg)
+	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
+		DNSName: aws.String("whatever.com"),
+	})
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			log.Printf("AWS Error: %s", aerr)
+		}
+		log.Printf("Not AWS error: %s", err)
+	}
+	log.Println(hz.DNSName)
+
+	validateResp, err := discord.Validate(publicKey, req)
+	if validateResp != nil || err != nil {
+		return *validateResp, err
 	}
 
-	// Wait here until CTRL-C or other term signal is received.
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	<-sc
+	var interaction discordgo.Interaction
+	err = json.Unmarshal([]byte(req.Body), &interaction)
+	if err != nil {
+		log.Printf("error: %s", err)
+	}
 
-	// Cleanly close down the Discord session.
-	d.Close()
+	if interaction.Type == discordgo.InteractionPing {
+		return chat.MakePing(), nil
+	}
+
+	ac := map[string]string{}
+	bot := bot.NewBot(sess, awsCfg, ac)
+
+	var resp events.APIGatewayV2HTTPResponse
+
+	body, err := bot.ProcessInteraction(interaction)
+	if err != nil {
+		// todo
+	}
+
+	//
+	// Finsh the response
+	//
+
+	headerSetter := make(map[string]string)
+	headerSetter["Content-Type"] = "application/json"
+	resp.StatusCode = 200
+	resp.Headers = headerSetter
+
+	resp.Body = string(bot.MakeResponseChannelMessageWithSource(body))
+
+	return resp, nil
+}
+
+//
+// Main
+//
+func main() {
+
+	log.Println("in main")
+
+	r53 := route53.New(sess, awsCfg)
+	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
+		DNSName: aws.String("whatever.com"),
+	})
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			log.Printf("AWS error: %s", aerr)
+		}
+		log.Printf("Not AWS error: %s", err)
+	}
+	log.Println(hz.DNSName)
+
+	// Alternate run command to build the webhooks and interactions in Discord
+	if RunSlashBuilder == "create" {
+		ssmStore := ssm.New(sess, awsCfg)
+		err := application.CreateSlashCommands(ssmStore)
+		if err != nil {
+			log.Println(err)
+		}
+		os.Exit(0)
+	}
+
+	lambda.Start(HandleRequest)
 }

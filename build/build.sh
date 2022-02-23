@@ -15,4 +15,4 @@ export GOCACHE=$(pwd)/.gobuildcache
 # CGO_ENABLED=0 means build the binary with cgo instead of go
 BUILD_NUMBER=${DRONE_BUILD_NUMBER-0}
 BUILD_VERSION=$(git rev-parse --short HEAD)
-CGO_ENABLED=0 go build -ldflags "-X main.VersionString=${BUILD_NUMBER}-${BUILD_VERSION}" -installsuffix cgo -o bin/sheeta src/main.go
+CGO_ENABLED=0 go build -ldflags "-X main.VersionString=${BUILD_NUMBER}-${BUILD_VERSION}" -installsuffix cgo -o bin/main src/main.go
