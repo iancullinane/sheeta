@@ -45,7 +45,7 @@ func init() {
 	}
 
 	ssmStore := ssm.New(sess, awsCfg)
-	pKey, err := services.GetParameter(ssmStore, aws.String("/some/key"))
+	pKey, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/publicKey"))
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +54,7 @@ func init() {
 
 	r53 := route53.New(sess, awsCfg)
 	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
-		DNSName: aws.String("whatever.com"),
+		DNSName: aws.String("adventurebrave.com"),
 	})
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
@@ -75,7 +75,7 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	log.Println("in handler")
 	r53 := route53.New(sess, awsCfg)
 	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
-		DNSName: aws.String("whatever.com"),
+		DNSName: aws.String("adventurebrave.com"),
 	})
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
@@ -133,7 +133,7 @@ func main() {
 
 	r53 := route53.New(sess, awsCfg)
 	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
-		DNSName: aws.String("whatever.com"),
+		DNSName: aws.String("adventurebrave.com"),
 	})
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
