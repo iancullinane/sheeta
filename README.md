@@ -1,27 +1,19 @@
+[![Generic badge](https://img.shields.io/badge/development-in&nbsp;progress-orange.svg)](https://shields.io/)
+
+<img align="left" width="200" height="200" src="https://i.postimg.cc/HLGxXbdy/sheeta.png">
 
 # Sheeta
 
-### This is all lies because now it is a lambda with http instead of a websocket and everything is a mess now
+CDK deployment infrastructure can be found here: [link](https://github.com/iancullinane/sheeta-infrastructure)
 
 Cloud bot for discord (you don't have to call it Sheeta)
 
-## How to run
+Personally deploying as a [lambda](https://github.com/iancullinane/sheeta-infrastructure)
 
-Clone this repo
-
-* Do cloudformation
-* Do Drone.io
-* Make cloud resources
-* Profit (I know this sucks more to come later)
-
-## Then run it like this
-
----
-```markdown
-AWS_REGION=<region> go run main.go -t <bot-token>
-```
----
+This is currently in heavy development. Originally I utilized a websocket approach, but have switched to a lambda. Use caution.
 
 ###
 
 I left a lot out....
+
+It works on my machine...
