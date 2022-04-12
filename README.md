@@ -6,7 +6,7 @@
 
 CDK deployment infrastructure can be found here: [link](https://github.com/iancullinane/sheeta-infrastructure)
 
-Cloud bot for discord. Has features for slash commands, direct chat, cloud deployment, and more to come. Everything in various states of progress. This is currently in heavy development. Originally I utilized a websocket approach, but have switched to a lambda. Use caution.
+Cloud bot for discord. Has features for slash commands (auto-generated even), direct chat, cloud deployment, and more to come. Everything in various states of progress. This is currently in heavy development. Originally I utilized a websocket approach, but have switched to a lambda. Use caution.
 
 (you don't have to call it Sheeta)
 
