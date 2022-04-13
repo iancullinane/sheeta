@@ -1,6 +1,6 @@
 [![Generic badge](https://img.shields.io/badge/development-in&nbsp;progress-orange.svg)](https://shields.io/)
 
-<img align="left" width="200" height="200" src="https://i.postimg.cc/HLGxXbdy/sheeta.png">
+<img align="left" width="225" height="200" src="https://i.postimg.cc/HLGxXbdy/sheeta.png">
 
 # Sheeta
 
