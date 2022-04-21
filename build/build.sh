@@ -1,7 +1,6 @@
 #! /bin/bash
 
 # Script executed when running the build container
-# https://github.turbine.com/MGP-Server/docker-go-build
 
 # Cause the script to exit with an error on unitialized variable usage
 # or when any command returns an error
