@@ -15,7 +15,7 @@ steps:
         from_secret: sheeta_aws_key
       secret_key:
         from_secret: sheeta_aws_secret
-      repo: sheeta
+      repo: adventurebrave.com
       dockerfile: ecr.Dockerfile
       registry: 208744038881.dkr.ecr.us-east-1.amazonaws.com
       tags:
