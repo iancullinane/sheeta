@@ -12,9 +12,9 @@ steps:
     image: plugins/ecr
     settings:
       access_key:
-        from_secret: ian_aws_key
+        from_secret: sheeta_aws_key
       secret_key:
-        from_secret: ian_aws_secret
+        from_secret: sheeta_aws_secret
       repo: sheeta
       dockerfile: ecr.Dockerfile
       registry: 346096930733.dkr.ecr.us-east-1.amazonaws.com
