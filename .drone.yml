@@ -12,12 +12,12 @@ steps:
     image: plugins/ecr
     settings:
       access_key:
-        from_secret: sheeta_aws_key
+        from_secret: new_aws_key
       secret_key:
-        from_secret: sheeta_aws_secret
+        from_secret: new_aws_secret
       repo: adventurebrave.com
       dockerfile: ecr.Dockerfile
-      registry: 208744038881.dkr.ecr.us-east-2.amazonaws.com/adventurebrave.com
+      registry: 208744038881.dkr.ecr.us-east-2.amazonaws.com
       tags:
         - ${DRONE_COMMIT_SHA}
         - lambda-version
