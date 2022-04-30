@@ -2,12 +2,8 @@ package bot
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -61,16 +57,16 @@ func (b *bot) ZomboidActionHandler(data discordgo.ApplicationCommandInteractionD
 
 	// b.r.AwsConfig.cre
 
-	r53 := route53.New(b.r.Session, b.r.AwsConfig)
-	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
-		DNSName: aws.String("adventurebrave.com"),
-	})
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			return fmt.Sprintf("AWS error in handler: %s", aerr)
-		}
-		return fmt.Sprintf("Not AWS error: %s", err)
-	}
+	// r53 := route53.New(b.r.Session, b.r.AwsConfig)
+	// hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
+	// 	DNSName: aws.String("adventurebrave.com"),
+	// })
+	// if err != nil {
+	// 	if aerr, ok := err.(awserr.Error); ok {
+	// 		return fmt.Sprintf("AWS error in handler: %s", aerr)
+	// 	}
+	// 	return fmt.Sprintf("Not AWS error: %s", err)
+	// }
 
-	return *hz.HostedZoneId
+	return "Hello"
 }

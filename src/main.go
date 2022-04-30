@@ -10,9 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/application"
@@ -41,7 +39,7 @@ func init() {
 	awsCfg = &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		S3ForcePathStyle:              aws.Bool(true),
-		Region:                        aws.String("us-east-1"), // us-east-2 is the destination bucket region
+		Region:                        aws.String("us-east-2"), // us-east-2 is the destination bucket region
 	}
 
 	ssmStore := ssm.New(sess, awsCfg)
@@ -50,20 +48,6 @@ func init() {
 		panic(err)
 	}
 
-	log.Println("in init")
-
-	r53 := route53.New(sess, awsCfg)
-	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
-		DNSName: aws.String("adventurebrave.com"),
-	})
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			log.Printf("AWS Error: %s", aerr)
-		}
-		log.Printf("Not AWS error: %s", err)
-	}
-	log.Println(hz.DNSName)
-
 	publicKey = *pKey.Parameter.Value
 }
 
@@ -71,19 +55,6 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 
 	log.Println(req.Body)
 	log.Println(json.Marshal(req.Body))
-
-	log.Println("in handler")
-	r53 := route53.New(sess, awsCfg)
-	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
-		DNSName: aws.String("adventurebrave.com"),
-	})
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			log.Printf("AWS Error: %s", aerr)
-		}
-		log.Printf("Not AWS error: %s", err)
-	}
-	log.Println(hz.DNSName)
 
 	validateResp, err := discord.Validate(publicKey, req)
 	if validateResp != nil || err != nil {
@@ -130,18 +101,6 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 func main() {
 
 	log.Println("in main")
-
-	r53 := route53.New(sess, awsCfg)
-	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
-		DNSName: aws.String("adventurebrave.com"),
-	})
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			log.Printf("AWS error: %s", aerr)
-		}
-		log.Printf("Not AWS error: %s", err)
-	}
-	log.Println(hz.DNSName)
 
 	// Alternate run command to build the webhooks and interactions in Discord
 	if RunSlashBuilder == "create" {
