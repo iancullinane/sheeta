@@ -8,10 +8,18 @@ CDK deployment infrastructure can be found here: [link](https://github.com/iancu
 
 Cloud bot for discord. Has features for slash commands (auto-generated even), direct chat, cloud deployment, and more to come. Everything in various states of progress. This is currently in heavy development. Originally I utilized a websocket approach, but have switched to a lambda. Use caution.
 
-(you don't have to call it Sheeta)
+## Usage
 
-###
+This repo will automatically build to a configured ecr repository via the `drone.yaml`.
 
-I left a lot out....
+The drone process will also build a binary, but you can also use the provided Dockerfiles.
 
-It works on my machine...
+You can build the binary like so:
+
+`./build/build.sh`
+
+and then:
+
+`./bin/sheeta -t <your discord token>`
+
+You can provide a flag to only build the commands found in `src/appplication`
