@@ -2,12 +2,8 @@ package bot
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -38,8 +34,8 @@ func (b *bot) ProcessInteraction(interaction discordgo.Interaction) (string, err
 	var resp string
 	data := interaction.ApplicationCommandData()
 	switch data.Name {
-	case "zomboid":
-		resp = b.ZomboidActionHandler(data)
+	case "server":
+		resp = b.ServerActionHandler(data)
 	default:
 		resp = "Command not found"
 	}
@@ -47,30 +43,7 @@ func (b *bot) ProcessInteraction(interaction discordgo.Interaction) (string, err
 	return resp, nil
 }
 
-func (b *bot) ZomboidActionHandler(data discordgo.ApplicationCommandInteractionData) string {
-	log.Println("Zomboid Action Handler")
-
-	// stsCreds := credentials.NewCredentials(&stscreds.AssumeRoleProvider{
-	// 	Client:       sts.New(b.r.Session),
-	// 	RoleARN:      roleArn,
-	// 	Duration:     stscreds.DefaultDuration,
-	// 	ExpiryWindow: time.Duration(float32(stscreds.DefaultDuration) * .9),
-	// })
-
-	// b.r.Session.Config.Credentials = stsCreds
-
-	// b.r.AwsConfig.cre
-
-	r53 := route53.New(b.r.Session, b.r.AwsConfig)
-	hz, err := r53.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{
-		DNSName: aws.String("adventurebrave.com"),
-	})
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			return fmt.Sprintf("AWS error in handler: %s", aerr)
-		}
-		return fmt.Sprintf("Not AWS error: %s", err)
-	}
-
-	return *hz.HostedZoneId
+func (b *bot) ServerActionHandler(data discordgo.ApplicationCommandInteractionData) string {
+	log.Println("Do something on a server")
+	return "Hello"
 }
