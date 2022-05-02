@@ -42,6 +42,7 @@ func init() {
 		Region:                        aws.String("us-east-2"), // us-east-2 is the destination bucket region
 	}
 
+	// TODO::Use motro to automate AWS keys
 	ssmStore := ssm.New(sess, awsCfg)
 	pKey, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/publicKey"))
 	if err != nil {
