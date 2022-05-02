@@ -27,7 +27,7 @@ func CreateSlashCommands(ssmStore *ssm.SSM) error {
 	for _, v := range commands {
 
 		cmds, _ := d.ApplicationCommands("703973863335264286", "")
-		log.Printf("%#v", cmds)
+		log.Printf("Deleting %s", v.Name)
 		for _, v := range cmds {
 			err := d.ApplicationCommandDelete("703973863335264286", "", v.ID)
 			if err != nil {
@@ -36,23 +36,12 @@ func CreateSlashCommands(ssmStore *ssm.SSM) error {
 		}
 
 		log.Println("Add " + v.Name)
-		_, err := d.ApplicationCommandCreate("703973863335264286", "", v)
+		rsp, err := d.ApplicationCommandCreate("703973863335264286", "703669646502395954", v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
+		log.Printf("%#v", rsp)
 	}
-
-	// whs, _ := s.ChannelWebhooks("703965708165447734")
-	// for _, v := range whs {
-	// 	log.Printf("%#v", v)
-	// }
-
-	// for _, v := range commands {
-	// 	_, err := s.WebhookCreate("703965708165447734", "basic-command", "")
-	// 	if err != nil {
-	// 		log.Panicf("Cannot create '%v' webhook: %v", v.Name, err)
-	// 	}
-	// }
 
 	return nil
 }
