@@ -4,16 +4,20 @@ name: default
 steps:
   - name: build
     image: eignhpants/image-builder
+    environment:
+      DISCORD_TOKEN:
+        from_secret: d_token
     commands:
       - ./build/build.sh
+      - bin/main -t $DISCORD_TOKEN -b create
 
   - name: publish-ecr
     image: plugins/ecr
     settings:
       access_key:
-        from_secret: new_aws_key
+        from_secret: sheeta_aws_key
       secret_key:
-        from_secret: new_aws_secret
+        from_secret: sheeta_aws_secret
       repo: adventurebrave.com
       dockerfile: ecr.Dockerfile
       region: us-east-2

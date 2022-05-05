@@ -11,12 +11,17 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/application"
 	"github.com/iancullinane/sheeta/src/internal/bot"
 	"github.com/iancullinane/sheeta/src/internal/chat"
+	"github.com/iancullinane/sheeta/src/internal/deploy"
 	"github.com/iancullinane/sheeta/src/internal/discord"
+	"github.com/iancullinane/sheeta/src/internal/server"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -52,10 +57,7 @@ func init() {
 	publicKey = *pKey.Parameter.Value
 }
 
-func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-
-	log.Println(req.Body)
-	log.Println(json.Marshal(req.Body))
+func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	validateResp, err := discord.Validate(publicKey, req)
 	if validateResp != nil || err != nil {
@@ -65,15 +67,24 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	var interaction discordgo.Interaction
 	err = json.Unmarshal([]byte(req.Body), &interaction)
 	if err != nil {
-		log.Printf("error: %s", err)
+		log.Printf("interaction unmarshall: %s", err)
 	}
 
 	if interaction.Type == discordgo.InteractionPing {
 		return chat.MakePing(), nil
 	}
 
-	ac := map[string]string{}
-	bot := bot.NewBot(sess, awsCfg, ac)
+	cfnClient := cloudformation.New(sess)
+	ec2Client := ec2.New(sess)
+	s3Client := s3manager.NewDownloader(sess)
+
+	availableModules := map[string]bot.Module{
+		"deploy": deploy.New(cfnClient, s3Client),
+		"server": server.New(ec2Client),
+	}
+
+	appConfig := map[string]string{}
+	bot := bot.NewBot(availableModules, sess, awsCfg, appConfig)
 
 	var resp events.APIGatewayV2HTTPResponse
 
@@ -101,8 +112,6 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 //
 func main() {
 
-	log.Println("in main")
-
 	// Alternate run command to build the webhooks and interactions in Discord
 	if RunSlashBuilder == "create" {
 		ssmStore := ssm.New(sess, awsCfg)
@@ -113,5 +122,5 @@ func main() {
 		os.Exit(0)
 	}
 
-	lambda.Start(HandleRequest)
+	lambda.Start(Sheeta)
 }

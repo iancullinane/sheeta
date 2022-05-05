@@ -18,5 +18,28 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "deploy",
+			Description: "Deploy a stack",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "template",
+					Description: "Name of the stack",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "env",
+					Description: "Environment to deploy into",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "sha",
+					Description: "The sha to deploy",
+				},
+			},
+		},
 	}
 )
