@@ -40,4 +40,5 @@ func (b *bot) ProcessInteraction(interaction discordgo.Interaction) (string, err
 		resp = "No module found"
 	}
 	return resp, nil
+
 }
