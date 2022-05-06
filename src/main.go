@@ -120,25 +120,22 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 func main() {
 
 	// Alternate run command to build the webhooks and interactions in Discord
-	switch RunSlashBuilder {
-	case "create":
+	if RunSlashBuilder == "create" {
 		ssmStore := ssm.New(sess, awsCfg)
 		err := application.CreateSlashCommands(ssmStore)
 		if err != nil {
 			log.Println(err)
-			os.Exit(1)
 		}
 		os.Exit(0)
-	case "delete":
+	}
+
+	if RunSlashBuilder == "delete" {
 		ssmStore := ssm.New(sess, awsCfg)
 		err := application.DeleteSlashCommands(ssmStore)
 		if err != nil {
 			log.Println(err)
 			os.Exit(1)
 		}
-		os.Exit(0)
-	default:
-		log.Println("Not a valid flag value")
 		os.Exit(0)
 	}
 
