@@ -45,3 +45,33 @@ func CreateSlashCommands(ssmStore *ssm.SSM) error {
 
 	return nil
 }
+
+func DeleteSlashCommands(ssmStore *ssm.SSM) error {
+
+	dToken, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/token"))
+	if err != nil {
+		panic(err)
+	}
+
+	d, err := discordgo.New("Bot " + *dToken.Parameter.Value)
+	if err != nil {
+		panic(err)
+	}
+
+	d.Open()
+	defer d.Close()
+
+	for _, v := range commands {
+
+		cmds, _ := d.ApplicationCommands("703973863335264286", "")
+		log.Printf("Deleting %s", v.Name)
+		for _, v := range cmds {
+			err := d.ApplicationCommandDelete("703973863335264286", "", v.ID)
+			if err != nil {
+				log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
+			}
+		}
+	}
+
+	return nil
+}
