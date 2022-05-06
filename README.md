@@ -10,9 +10,19 @@ Cloud bot for discord. Has features for slash commands (auto-generated even), di
 
 ## Usage
 
+For now this will work best being deployed behind a AWS API Gateway HTTP API v2. The reason for this is the container in ecr uses the ecr build image to simplify development. 
+
 This repo will automatically build to a configured ecr repository via the `drone.yaml`.
 
-The drone process will also build a binary, but you can also use the provided Dockerfiles.
+### Application Commands
+
+Before you can use a `slash` command in discord it my be created via the API. This is done automatically on commit by drone. The `src/application` package has the definitions as well as commands to build to a discord server.
+
+Use the `-b` flag with the values `create` or `delete` to manage commands locally.
+
+### Build
+
+The drone process will also build a binary, but you can use the provided Dockerfiles.
 
 You can build the binary like so:
 
