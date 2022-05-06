@@ -113,7 +113,13 @@ func (dc *deployCommands) getStackConfig(bucketName string, options map[string]s
 
 	// TODO::This is basically a backup sha, handle it a bit better
 	sc := StackConfig{}
-	sha := "0fbc9359e56b79932d06990aeff9524eafa631dc"
+	sha := "0fbc9359e56b79932d06990aeff9524eafa631dc" // cfg sha
+	if _, ok := options["sha"]; !ok {
+		options["sha"] = "09052b4eb7aadd5864730f884542ed7405e30eab" // cfn sha
+	}
+	if _, ok := options["env"]; !ok {
+		options["env"] = "dev" // cfn sha
+	}
 	// if v, ok := options["sha"]; ok {
 	// 	sha = v.StringValue()
 	// }
