@@ -8,6 +8,10 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
+// Validate handles the logic required to valideate your bot with the discord api (link below).
+// This particular functions is intended to work with APIGatewayV2HTTPRequest as oposed
+// to generic https, this was to workaround unclear support of the standard
+// go http client in this place
 func Validate(publicKey string, req events.APIGatewayV2HTTPRequest) (*events.APIGatewayV2HTTPResponse, error) {
 
 	var resp events.APIGatewayV2HTTPResponse

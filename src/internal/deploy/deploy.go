@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"unicode"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -39,16 +38,34 @@ type StackConfig struct {
 // 09052b4eb7aadd5864730f884542ed7405e30eab
 // asg/auto-scaling-group
 
-func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionData) string {
-
-	// optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(data.Options))
-	optionMap := make(map[string]string, len(data.Options))
+func makeOptions(data discordgo.ApplicationCommandInteractionData) map[string]string {
+	// sha := "0fbc9359e56b79932d06990aeff9524eafa631dc" // cfg sha
+	optionMap := make(map[string]string, 0)
 	for _, opt := range data.Options {
 		optionMap[opt.Name] = opt.StringValue()
 	}
 
-	log.Println(prettyPrint(optionMap))
+	if _, ok := optionMap["sha"]; !ok {
+		optionMap["sha"] = "09052b4eb7aadd5864730f884542ed7405e30eab" // cfn sha
+	}
+	if _, ok := optionMap["env"]; !ok {
+		optionMap["env"] = "dev" // cfn sha
+	}
 
+	optionMap["env-config"] = fixYamlSuffix(optionMap["env-config"])
+	optionMap["template"] = fixYamlSuffix(optionMap["template"])
+
+	return optionMap
+}
+
+func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionData) string {
+
+	// optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(data.Options))
+	// optionMap := make(map[string]string, len(data.Options))
+	// for _, opt := range data.Options {
+	// 	optionMap[opt.Name] = opt.StringValue()
+	// }
+	optionMap := makeOptions(data)
 	sc, err := dc.getStackConfig("sheeta-config-bucket", optionMap)
 	if err != nil {
 		return err.Error()
@@ -74,7 +91,7 @@ func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionDa
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			default:
-				return fmt.Sprintf("aws CreateStack err: %v\n%v", err.Error(), prettyPrint(sc))
+				return fmt.Sprintf("aws CreateStack err: %v\n%v", err.Error(), prettyPrint(sc.CloudConfig))
 			}
 		}
 		return fmt.Sprint(err.Error())
@@ -113,19 +130,7 @@ func (dc *deployCommands) getStackConfig(bucketName string, options map[string]s
 
 	// TODO::This is basically a backup sha, handle it a bit better
 	sc := StackConfig{}
-	sha := "0fbc9359e56b79932d06990aeff9524eafa631dc" // cfg sha
-	if _, ok := options["sha"]; !ok {
-		options["sha"] = "09052b4eb7aadd5864730f884542ed7405e30eab" // cfn sha
-	}
-	if _, ok := options["env"]; !ok {
-		options["env"] = "dev" // cfn sha
-	}
-	// if v, ok := options["sha"]; ok {
-	// 	sha = v.StringValue()
-	// }
-
-	configKey := fmt.Sprintf("%v/env/%v/%v", sha, "dev", options["env-config"])
-	log.Println("Getting config from: " + configKey)
+	configKey := fmt.Sprintf("%v/env/%v/%v", "0fbc9359e56b79932d06990aeff9524eafa631dc", "dev", options["env-config"])
 	configFile, err := dc.getFileFromBucket(bucketName, configKey)
 	if err != nil {
 		sc.Result = fmt.Sprintf("get config failed: %v", err.Error())
@@ -142,7 +147,6 @@ func (dc *deployCommands) getStackConfig(bucketName string, options map[string]s
 	}
 
 	tmplKey := fmt.Sprintf("%v/templates/%v", options["sha"], options["template"])
-	log.Println("Getting template from: " + tmplKey)
 
 	cfnFile, err := dc.getFileFromBucket("sheeta-cfn-bucket", tmplKey)
 	if err != nil {
@@ -181,16 +185,12 @@ func buildCreateRequest(cr *cloudformation.CreateStackInput, rcfg map[string]str
 
 }
 
-func fixYamlSuffix(s string) (string, error) {
-	r := []rune(s)
-	if !unicode.IsLetter(r[len(s)-1]) {
-		return "", fmt.Errorf("template must end in a letter")
-	}
+func fixYamlSuffix(s string) string {
 	if !strings.HasSuffix(s, ".yaml") {
 		s = s + ".yaml"
-		return s, nil
+		return s
 	}
-	return s, nil
+	return s
 }
 
 // TODO::Something clever aroud the fact the create and update share a similar

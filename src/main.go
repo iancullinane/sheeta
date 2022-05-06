@@ -36,6 +36,8 @@ var sess *session.Session
 var awsCfg *aws.Config
 var publicKey string
 
+// Use the init to provide certain values before the handler, in particular
+// provide the session for this invocation
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.StringVar(&RunSlashBuilder, "b", "", "Slash command builder")
@@ -71,14 +73,17 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 		log.Printf("interaction unmarshall: %s", err)
 	}
 
+	// All bots must be able to handle ping and validate
 	if interaction.Type == discordgo.InteractionPing {
 		return chat.MakePing(), nil
 	}
 
+	// Create clients to be used by modules
 	cfnClient := cloudformation.New(sess)
 	ec2Client := ec2.New(sess)
 	s3Client := s3manager.NewDownloader(sess)
 
+	// Instantiate modules
 	availableModules := map[string]bot.Module{
 		"deploy": deploy.New(cfnClient, s3Client),
 		"server": server.New(ec2Client),
