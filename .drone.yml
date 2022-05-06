@@ -5,6 +5,10 @@ steps:
   - name: build
     image: eignhpants/image-builder
     environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: sheeta_aws_key
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: sheeta_aws_secret
       DISCORD_TOKEN:
         from_secret: d_token
     commands:

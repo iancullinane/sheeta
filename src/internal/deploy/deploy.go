@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -28,17 +29,25 @@ func New(cfClient CloudFormationDeployClient, s3Client S3Client) *deployCommands
 
 // StackConfig is used to generate the request
 type StackConfig struct {
-	Name        string                 `yaml:"name"`
-	CloudConfig map[string]interface{} `yaml:"cloud-config"`
-	Tags        map[string]string      `yaml:"tags"`
+	Name        string `yaml:"name"`
+	Template    *string
+	Result      string
+	CloudConfig map[string]string `yaml:"cloud-config"`
+	Tags        map[string]string `yaml:"tags"`
 }
+
+// 09052b4eb7aadd5864730f884542ed7405e30eab
+// asg/auto-scaling-group
 
 func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionData) string {
 
-	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(data.Options))
+	// optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(data.Options))
+	optionMap := make(map[string]string, len(data.Options))
 	for _, opt := range data.Options {
-		optionMap[opt.Name] = opt
+		optionMap[opt.Name] = opt.StringValue()
 	}
+
+	log.Println(prettyPrint(optionMap))
 
 	sc, err := dc.getStackConfig("sheeta-config-bucket", optionMap)
 	if err != nil {
@@ -47,14 +56,10 @@ func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionDa
 
 	// "09052b4eb7aadd5864730f884542ed7405e30eab"
 
-	if sc == nil {
-		return "config does not exist in s3 for this template and environment"
-	}
-
 	cr := cloudformation.CreateStackInput{
 		// RoleARN:     aws.String(cm.cfg[cloudRoleKey]),
-		StackName:   aws.String(sc.Name),
-		TemplateURL: aws.String("not sure"),
+		StackName:    aws.String(sc.Name),
+		TemplateBody: sc.Template,
 		Capabilities: []*string{
 			// TODO::Move to config/flag
 			aws.String("CAPABILITY_AUTO_EXPAND"),
@@ -62,75 +67,102 @@ func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionDa
 		},
 	}
 
-	log.Printf("%#v", cr)
-
 	buildCreateRequest(&cr, sc.CloudConfig, sc.Tags)
 
-	_, err = dc.cfClient.CreateStack(&cr)
-	if aerr, ok := err.(awserr.Error); ok {
-		return fmt.Errorf("create Stack Request: %s", aerr).Error()
-	} else {
-		return err.Error()
+	resp, err := dc.cfClient.CreateStack(&cr)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				return fmt.Sprintf("aws CreateStack err: %v\n%v", err.Error(), prettyPrint(sc))
+			}
+		}
+		return fmt.Sprint(err.Error())
 	}
 
+	return *resp.StackId
+
+}
+
+func prettyPrint(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	return string(s)
+}
+
+func (dc *deployCommands) getFileFromBucket(bucket, key string) ([]byte, error) {
+	// This uses the S3 downloader
+	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#Downloader
+	input := s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	}
+
+	buf := aws.NewWriteAtBuffer([]byte{})
+	_, err := dc.s3Client.Download(buf, &input)
+	if aerr, ok := err.(awserr.Error); ok {
+		return nil, fmt.Errorf("not found for key: %v\naws err: %v", key, aerr.Error())
+	}
+
+	return buf.Bytes(), nil
 }
 
 // getStackConfig gets a matching config from s3 matching the environment
 // called when the user entered the `--env` flag
 // func getStackConfig(env, stack, bucketName string, s3c S3Client) *StackConfig {
-func (dc *deployCommands) getStackConfig(bucketName string, options map[string]*discordgo.ApplicationCommandInteractionDataOption) (*StackConfig, error) {
+func (dc *deployCommands) getStackConfig(bucketName string, options map[string]string) (StackConfig, error) {
 
 	// TODO::This is basically a backup sha, handle it a bit better
+	sc := StackConfig{}
 	sha := "0fbc9359e56b79932d06990aeff9524eafa631dc"
 	// if v, ok := options["sha"]; ok {
 	// 	sha = v.StringValue()
 	// }
 
-	tmpl, err := fixYamlSuffix(options["template"].StringValue())
+	configKey := fmt.Sprintf("%v/env/%v/%v", sha, "dev", options["env-config"])
+	log.Println("Getting config from: " + configKey)
+	configFile, err := dc.getFileFromBucket(bucketName, configKey)
 	if err != nil {
-		return nil, err
+		sc.Result = fmt.Sprintf("get config failed: %v", err.Error())
+		return sc, err
 	}
-
-	key := fmt.Sprintf("%v/env/%v/%v", sha, options["env"].StringValue(), tmpl)
-
-	input := s3.GetObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(key),
-	}
-
-	// This uses the S3 downloader
-	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#Downloader
-	buf := aws.NewWriteAtBuffer([]byte{})
-	dl, err := dc.s3Client.Download(buf, &input)
-	if aerr, ok := err.(awserr.Error); ok {
-		return nil, fmt.Errorf("not found for key: %v\n%#v\naws err: %v", key, options, aerr.Error())
-	}
-
-	// Since the path and the stack name are derived from the key path,
-	// we need to remove slashes for StackNameParameter compatibility
-	var sc StackConfig
-	if dl > 0 {
+	if len(configFile) > 0 {
 		log.Println("Stack config found in S3")
-		err = yaml.Unmarshal(buf.Bytes(), &sc)
+		err = yaml.Unmarshal(configFile, &sc)
 		if err != nil {
 			// We don't need to fail here because not every stack has a config
-			return nil, err
+			log.Printf("that one err %#v", err)
 		}
 		log.Printf("%#v", sc)
-		return &sc, nil
 	}
 
-	return nil, nil
+	tmplKey := fmt.Sprintf("%v/templates/%v", options["sha"], options["template"])
+	log.Println("Getting template from: " + tmplKey)
+
+	cfnFile, err := dc.getFileFromBucket("sheeta-cfn-bucket", tmplKey)
+	if err != nil {
+		sc.Result = fmt.Sprintf("get cfn failed: %v", err.Error())
+		return sc, err
+	}
+
+	if len(cfnFile) > 0 {
+		log.Println("Stack template found in S3")
+		str := string(cfnFile)
+		sc.Template = aws.String(str)
+	} else {
+		fmt.Println("none found")
+	}
+
+	return sc, nil
 }
 
 // TODO::Something clever aroud the fact the create and update share a similar
 // interface for tags and params
-func buildCreateRequest(cr *cloudformation.CreateStackInput, rcfg map[string]interface{}, tags map[string]string) {
+func buildCreateRequest(cr *cloudformation.CreateStackInput, rcfg map[string]string, tags map[string]string) {
 
 	for k, v := range rcfg {
 		cr.Parameters = append(cr.Parameters, &cloudformation.Parameter{
 			ParameterKey:   aws.String(k),
-			ParameterValue: aws.String(v.(string)),
+			ParameterValue: aws.String(v),
 		})
 	}
 

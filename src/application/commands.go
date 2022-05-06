@@ -24,15 +24,20 @@ var (
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "env-config",
+					Description: "The config file",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
 					Name:        "template",
-					Description: "Name of the stack",
+					Description: "The cfn template",
 					Required:    true,
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
 					Name:        "env",
 					Description: "Environment to deploy into",
-					Required:    true,
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionString,

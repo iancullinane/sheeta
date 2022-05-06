@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -90,12 +91,13 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 
 	body, err := bot.ProcessInteraction(interaction)
 	if err != nil {
-		// todo
+		headerSetter := make(map[string]string)
+		headerSetter["Content-Type"] = "application/json"
+		resp.StatusCode = 200
+		resp.Headers = headerSetter
+		text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
+		resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
 	}
-
-	//
-	// Finsh the response
-	//
 
 	headerSetter := make(map[string]string)
 	headerSetter["Content-Type"] = "application/json"
