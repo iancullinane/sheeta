@@ -61,7 +61,7 @@ func init() {
 
 func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
-	if req.RawPath == "v1/anything" {
+	if req.RawPath == "/v1/anything" {
 		return makeResponse(req), nil
 	}
 
