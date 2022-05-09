@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
@@ -62,6 +61,10 @@ func init() {
 
 func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
+	if req.RawPath == "v1/anything" {
+		return makeResponse(), nil
+	}
+
 	validateResp, err := discord.Validate(publicKey, req)
 	if validateResp != nil || err != nil {
 		return *validateResp, err
@@ -83,6 +86,9 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	ec2Client := ec2.New(sess)
 	s3Client := s3manager.NewDownloader(sess)
 
+	// gitClient :=
+	// import "github.com/google/go-github/v44/github"
+
 	// Instantiate modules
 	availableModules := map[string]bot.Module{
 		"deploy": deploy.New(cfnClient, s3Client),
@@ -96,12 +102,12 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 
 	body, err := bot.ProcessInteraction(interaction)
 	if err != nil {
-		headerSetter := make(map[string]string)
-		headerSetter["Content-Type"] = "application/json"
-		resp.StatusCode = 200
-		resp.Headers = headerSetter
-		text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
-		resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
+		// headerSetter := make(map[string]string)
+		// headerSetter["Content-Type"] = "application/json"
+		// resp.StatusCode = 200
+		// resp.Headers = headerSetter
+		// text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
+		// resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
 	}
 
 	headerSetter := make(map[string]string)
@@ -112,6 +118,19 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	resp.Body = string(bot.MakeResponseChannelMessageWithSource(body))
 
 	return resp, nil
+}
+
+func makeResponse() events.APIGatewayV2HTTPResponse {
+
+	var resp events.APIGatewayV2HTTPResponse
+	headerSetter := make(map[string]string)
+	headerSetter["Content-Type"] = "application/json"
+	resp.StatusCode = 200
+	resp.Headers = headerSetter
+
+	resp.Body = "Generic body"
+
+	return resp
 }
 
 //
