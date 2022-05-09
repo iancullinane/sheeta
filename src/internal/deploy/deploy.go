@@ -86,6 +86,8 @@ func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionDa
 
 	buildCreateRequest(&cr, sc.CloudConfig, sc.Tags)
 
+	log.Println("before output")
+
 	resp, err := dc.cfClient.CreateStack(&cr)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
@@ -183,6 +185,8 @@ func buildCreateRequest(cr *cloudformation.CreateStackInput, rcfg map[string]str
 		})
 	}
 
+	log.Printf("%#v", cr)
+
 }
 
 func fixYamlSuffix(s string) string {
@@ -192,23 +196,3 @@ func fixYamlSuffix(s string) string {
 	}
 	return s
 }
-
-// TODO::Something clever aroud the fact the create and update share a similar
-// interface for tags and params
-// func buildCreateRequest(cr *cf.CreateStackInput, rcfg map[string]interface{}, tags map[string]string) {
-
-// 	for k, v := range rcfg {
-// 		cr.Parameters = append(cr.Parameters, &cf.Parameter{
-// 			ParameterKey:   aws.String(k),
-// 			ParameterValue: aws.String(v.(string)),
-// 		})
-// 	}
-
-// 	for k, v := range tags {
-// 		cr.Tags = append(cr.Tags, &cf.Tag{
-// 			Key:   aws.String(k),
-// 			Value: aws.String(v),
-// 		})
-// 	}
-
-// }

@@ -40,3 +40,6 @@ func EmbedErrorMsg(s string) discordgo.MessageEmbed {
 	me.Description = s
 	return me
 }
+
+// https://pkg.go.dev/github.com/bwmarrin/discordgo#Session.FollowupMessageCreate
+// FollowupMessageCreate(interaction *Interaction, wait bool, data *WebhookParams) (*Message, error)
