@@ -132,7 +132,7 @@ func (dc *deployCommands) getStackConfig(bucketName string, options map[string]s
 
 	// TODO::This is basically a backup sha, handle it a bit better
 	sc := StackConfig{}
-	configKey := fmt.Sprintf("%v/env/%v/%v", "0fbc9359e56b79932d06990aeff9524eafa631dc", "dev", options["env-config"])
+	configKey := fmt.Sprintf("%v/env/%v/%v", "9cee9746ed2388f5987913c39d2599a09e508af5", "dev", options["env-config"])
 	configFile, err := dc.getFileFromBucket(bucketName, configKey)
 	if err != nil {
 		sc.Result = fmt.Sprintf("get config failed: %v", err.Error())
