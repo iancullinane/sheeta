@@ -62,7 +62,7 @@ func init() {
 func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	if req.RawPath == "v1/anything" {
-		return makeResponse(), nil
+		return makeResponse(req), nil
 	}
 
 	validateResp, err := discord.Validate(publicKey, req)
@@ -120,7 +120,7 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	return resp, nil
 }
 
-func makeResponse() events.APIGatewayV2HTTPResponse {
+func makeResponse(evt events.APIGatewayV2HTTPRequest) events.APIGatewayV2HTTPResponse {
 
 	var resp events.APIGatewayV2HTTPResponse
 	headerSetter := make(map[string]string)
@@ -128,9 +128,14 @@ func makeResponse() events.APIGatewayV2HTTPResponse {
 	resp.StatusCode = 200
 	resp.Headers = headerSetter
 
-	resp.Body = "Generic body"
+	resp.Body = prettyPrint(evt)
 
 	return resp
+}
+
+func prettyPrint(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	return string(s)
 }
 
 //
