@@ -34,11 +34,15 @@ func (b *bot) ProcessInteraction(interaction discordgo.Interaction) (string, err
 	var resp string
 	cmd := interaction.ApplicationCommandData()
 
+	tmpCtl := Controller{
+		MsgCh: make(chan string),
+		Done:  make(chan bool),
+	}
+
 	if mod, ok := b.r.Modules[cmd.Name]; ok {
-		resp = mod.Handler(cmd)
+		resp = mod.Handler(cmd, tmpCtl)
 	} else {
 		resp = "No module found"
 	}
 	return resp, nil
-
 }

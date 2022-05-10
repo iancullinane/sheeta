@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/src/internal/bot"
 	"gopkg.in/yaml.v2"
 )
 
@@ -58,7 +59,7 @@ func makeOptions(data discordgo.ApplicationCommandInteractionData) map[string]st
 	return optionMap
 }
 
-func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionData) string {
+func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionData, ctl bot.Controller) string {
 
 	// optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(data.Options))
 	// optionMap := make(map[string]string, len(data.Options))

@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/src/internal/bot"
 )
 
 type serverCommands struct {
@@ -20,7 +21,7 @@ func New(ec2Client EC2InstanceClient) *serverCommands {
 	}
 }
 
-func (h *serverCommands) Handler(data discordgo.ApplicationCommandInteractionData) string {
+func (h *serverCommands) Handler(data discordgo.ApplicationCommandInteractionData, ctl bot.Controller) string {
 
 	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(data.Options))
 	for _, opt := range data.Options {

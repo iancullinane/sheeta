@@ -19,6 +19,18 @@ var (
 			},
 		},
 		{
+			Name:        "ctest",
+			Description: "Manage a server",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "test-true",
+					Description: "Start the server true/false",
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:        "deploy",
 			Description: "Deploy a stack",
 			Options: []*discordgo.ApplicationCommandOption{

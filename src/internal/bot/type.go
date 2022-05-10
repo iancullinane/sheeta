@@ -8,7 +8,8 @@ import (
 )
 
 type bot struct {
-	r Resources
+	r   Resources
+	ctl *Controller
 }
 
 type Resources struct {
@@ -19,12 +20,6 @@ type Resources struct {
 }
 
 func NewBot(modules map[string]Module, sess *session.Session, aws *aws.Config, ac map[string]string) *bot {
-
-	// activeMods := make(map[string]string, len(modules))
-	// for v := range modules {
-	// 	activeMods[v] =
-	// }
-
 	return &bot{
 		r: Resources{
 			Session:    sess,
@@ -37,7 +32,8 @@ func NewBot(modules map[string]Module, sess *session.Session, aws *aws.Config, a
 
 // Module is an independent set of actions containing its cli and handlers
 type Module interface {
-	Handler(data discordgo.ApplicationCommandInteractionData) string
+	Handler(discordgo.ApplicationCommandInteractionData, Controller) string
+	// Handler(discordgo.ApplicationCommandInteractionData, chan string) string
 }
 
 // Action is the function definition and its flags
