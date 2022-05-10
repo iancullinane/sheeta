@@ -32,18 +32,13 @@ func (b *bot) ProcessInteraction(interaction discordgo.Interaction) (string, err
 
 	// var callback discordgo.InteractionResponse
 	var resp string
-	data := interaction.ApplicationCommandData()
-	switch data.Name {
-	case "server":
-		resp = b.ServerActionHandler(data)
-	default:
-		resp = "Command not found"
+	cmd := interaction.ApplicationCommandData()
+
+	if mod, ok := b.r.Modules[cmd.Name]; ok {
+		resp = mod.Handler(cmd)
+	} else {
+		resp = "No module found"
 	}
-
 	return resp, nil
-}
 
-func (b *bot) ServerActionHandler(data discordgo.ApplicationCommandInteractionData) string {
-	log.Println("Do something on a server")
-	return "Hello"
 }

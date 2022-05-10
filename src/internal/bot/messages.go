@@ -4,14 +4,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// // Msngr is a helper
-// type Msngr struct{}
-
-// // NewMsngr is basically a factory
-// func NewMsngr() *Msngr {
-// 	return &Msngr{}
-// }
-
 // SendSuccessToUser sends a simple 'Heard'
 func SendSuccessToUser(s *discordgo.Session, channelID string, content string) {
 	var me discordgo.MessageEmbed
@@ -48,3 +40,6 @@ func EmbedErrorMsg(s string) discordgo.MessageEmbed {
 	me.Description = s
 	return me
 }
+
+// https://pkg.go.dev/github.com/bwmarrin/discordgo#Session.FollowupMessageCreate
+// FollowupMessageCreate(interaction *Interaction, wait bool, data *WebhookParams) (*Message, error)

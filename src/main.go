@@ -11,12 +11,17 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/application"
 	"github.com/iancullinane/sheeta/src/internal/bot"
 	"github.com/iancullinane/sheeta/src/internal/chat"
+	"github.com/iancullinane/sheeta/src/internal/deploy"
 	"github.com/iancullinane/sheeta/src/internal/discord"
+	"github.com/iancullinane/sheeta/src/internal/server"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -30,6 +35,8 @@ var sess *session.Session
 var awsCfg *aws.Config
 var publicKey string
 
+// Use the init to provide certain values before the handler, in particular
+// provide the session for this invocation
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.StringVar(&RunSlashBuilder, "b", "", "Slash command builder")
@@ -52,10 +59,11 @@ func init() {
 	publicKey = *pKey.Parameter.Value
 }
 
-func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
-	log.Println(req.Body)
-	log.Println(json.Marshal(req.Body))
+	if req.RawPath == "/v1/anything" {
+		return makeResponse(req), nil
+	}
 
 	validateResp, err := discord.Validate(publicKey, req)
 	if validateResp != nil || err != nil {
@@ -65,26 +73,42 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	var interaction discordgo.Interaction
 	err = json.Unmarshal([]byte(req.Body), &interaction)
 	if err != nil {
-		log.Printf("error: %s", err)
+		log.Printf("interaction unmarshall: %s", err)
 	}
 
+	// All bots must be able to handle ping and validate
 	if interaction.Type == discordgo.InteractionPing {
 		return chat.MakePing(), nil
 	}
 
-	ac := map[string]string{}
-	bot := bot.NewBot(sess, awsCfg, ac)
+	// Create clients to be used by modules
+	cfnClient := cloudformation.New(sess)
+	ec2Client := ec2.New(sess)
+	s3Client := s3manager.NewDownloader(sess)
+
+	// gitClient :=
+	// import "github.com/google/go-github/v44/github"
+
+	// Instantiate modules
+	availableModules := map[string]bot.Module{
+		"deploy": deploy.New(cfnClient, s3Client),
+		"server": server.New(ec2Client),
+	}
+
+	appConfig := map[string]string{}
+	bot := bot.NewBot(availableModules, sess, awsCfg, appConfig)
 
 	var resp events.APIGatewayV2HTTPResponse
 
 	body, err := bot.ProcessInteraction(interaction)
 	if err != nil {
-		// todo
+		// headerSetter := make(map[string]string)
+		// headerSetter["Content-Type"] = "application/json"
+		// resp.StatusCode = 200
+		// resp.Headers = headerSetter
+		// text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
+		// resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
 	}
-
-	//
-	// Finsh the response
-	//
 
 	headerSetter := make(map[string]string)
 	headerSetter["Content-Type"] = "application/json"
@@ -96,12 +120,28 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	return resp, nil
 }
 
+func makeResponse(evt events.APIGatewayV2HTTPRequest) events.APIGatewayV2HTTPResponse {
+
+	var resp events.APIGatewayV2HTTPResponse
+	headerSetter := make(map[string]string)
+	headerSetter["Content-Type"] = "application/json"
+	resp.StatusCode = 200
+	resp.Headers = headerSetter
+
+	resp.Body = prettyPrint(evt)
+
+	return resp
+}
+
+func prettyPrint(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	return string(s)
+}
+
 //
 // Main
 //
 func main() {
-
-	log.Println("in main")
 
 	// Alternate run command to build the webhooks and interactions in Discord
 	if RunSlashBuilder == "create" {
@@ -113,5 +153,15 @@ func main() {
 		os.Exit(0)
 	}
 
-	lambda.Start(HandleRequest)
+	if RunSlashBuilder == "delete" {
+		ssmStore := ssm.New(sess, awsCfg)
+		err := application.DeleteSlashCommands(ssmStore)
+		if err != nil {
+			log.Println(err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
+	lambda.Start(Sheeta)
 }

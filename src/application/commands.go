@@ -18,5 +18,33 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "deploy",
+			Description: "Deploy a stack",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "env-config",
+					Description: "The config file",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "template",
+					Description: "The cfn template",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "env",
+					Description: "Environment to deploy into",
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "sha",
+					Description: "The sha to deploy",
+				},
+			},
+		},
 	}
 )
