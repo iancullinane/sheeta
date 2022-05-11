@@ -61,6 +61,9 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 		return makeResponse(req), nil
 	}
 
+	dsess, _ := discordgo.New(publicKey)
+	log.Println(dsess.LogLevel)
+
 	validateResp, err := discord.Validate(publicKey, req)
 	if validateResp != nil || err != nil {
 		return *validateResp, err
@@ -97,6 +100,14 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 
 	var resp events.APIGatewayV2HTTPResponse
 
+	// 	go func() {
+	// 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// 		defer cancel()
+	// 		s.slackController.SubmitEvent(ctx, &outerEvent.InnerEvent, req.ApiAppId)
+	// 	}()
+	// 	return &slackproto.EventResponse{}, nil
+	// }
+
 	// body, err := bot.ProcessInteraction(interaction)
 	// if err != nil {
 	// headerSetter := make(map[string]string)
@@ -114,6 +125,10 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 
 	// resp.Body = string(bot.MakeResponseChannelMessageWithSource(body))
 	resp.Body = string(bot.MakeDeferredChannelMsg())
+
+	// go func() {
+	// 	body, err := bot.ProcessInteraction(interaction)
+	// }()
 
 	return resp, nil
 }
