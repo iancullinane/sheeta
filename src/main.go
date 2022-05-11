@@ -97,22 +97,23 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 
 	var resp events.APIGatewayV2HTTPResponse
 
-	body, err := bot.ProcessInteraction(interaction)
-	if err != nil {
-		// headerSetter := make(map[string]string)
-		// headerSetter["Content-Type"] = "application/json"
-		// resp.StatusCode = 200
-		// resp.Headers = headerSetter
-		// text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
-		// resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
-	}
+	// body, err := bot.ProcessInteraction(interaction)
+	// if err != nil {
+	// headerSetter := make(map[string]string)
+	// headerSetter["Content-Type"] = "application/json"
+	// resp.StatusCode = 200
+	// resp.Headers = headerSetter
+	// text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
+	// resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
+	// }
 
 	headerSetter := make(map[string]string)
 	headerSetter["Content-Type"] = "application/json"
 	resp.StatusCode = 200
 	resp.Headers = headerSetter
 
-	resp.Body = string(bot.MakeResponseChannelMessageWithSource(body))
+	// resp.Body = string(bot.MakeResponseChannelMessageWithSource(body))
+	resp.Body = string(bot.MakeDeferredChannelMsg())
 
 	return resp, nil
 }
