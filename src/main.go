@@ -30,6 +30,7 @@ var (
 var sess *session.Session
 var awsCfg *aws.Config
 var publicKey string
+var dtoken string
 
 // Use the init to provide certain values before the handler, in particular
 // provide the session for this invocation
@@ -52,6 +53,12 @@ func init() {
 		panic(err)
 	}
 
+	dtKey, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/token"))
+	if err != nil {
+		panic(err)
+	}
+
+	dtoken = *dtKey.Parameter.Value
 	publicKey = *pKey.Parameter.Value
 }
 
@@ -61,8 +68,15 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 		return makeResponse(req), nil
 	}
 
-	dsess, _ := discordgo.New(publicKey)
-	user, err := dsess.User("@me")
+	d, err := discordgo.New("Bot " + dtoken)
+	if err != nil {
+		panic(err)
+	}
+
+	d.Open()
+	defer d.Close()
+
+	user, err := d.User("@me")
 	if err != nil {
 		log.Printf("session error: %s", err)
 	}
