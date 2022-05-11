@@ -62,7 +62,8 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	}
 
 	dsess, _ := discordgo.New(publicKey)
-	log.Println(dsess.LogLevel)
+	user, err := dsess.User("@me")
+	log.Println(user.ID)
 
 	validateResp, err := discord.Validate(publicKey, req)
 	if validateResp != nil || err != nil {
