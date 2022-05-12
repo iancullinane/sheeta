@@ -1,9 +1,6 @@
 package server
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -21,10 +18,12 @@ func New(ec2Client EC2InstanceClient) *serverCommands {
 	}
 }
 
-func (h *serverCommands) Handler(data discordgo.ApplicationCommandInteractionData, ctl bot.Controller) string {
+func (h *serverCommands) Handler(i *discordgo.Interaction, d *discordgo.Session) {
 
-	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(data.Options))
-	for _, opt := range data.Options {
+	cmd := i.ApplicationCommandData()
+
+	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(cmd.Options))
+	for _, opt := range cmd.Options {
 		optionMap[opt.Name] = opt
 	}
 
@@ -44,12 +43,12 @@ func (h *serverCommands) Handler(data discordgo.ApplicationCommandInteractionDat
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			default:
-				return fmt.Sprintf("%s: %s", "aws error", aerr.Error())
+				bot.Respond(aerr.Error(), i, d)
+				return
 			}
 		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			return err.Error()
+			bot.Respond(aerr.Error(), i, d)
+			return
 		}
 	}
 
@@ -57,19 +56,21 @@ func (h *serverCommands) Handler(data discordgo.ApplicationCommandInteractionDat
 		if v.Value == true {
 			resp, err := h.startInstance(*describeResult.Reservations[0].Instances[0].InstanceId)
 			if err != nil {
-				log.Println(err)
+				bot.Respond(err.Error(), i, d)
 			}
-			return *resp.StartingInstances[0].InstanceId + " starting"
+			bot.Respond(*resp.StartingInstances[0].InstanceId+" starting", i, d)
+			return
 		} else {
 			resp, err := h.stopInstance(*describeResult.Reservations[0].Instances[0].InstanceId)
 			if err != nil {
-				log.Println(err)
+				bot.Respond(err.Error(), i, d)
 			}
-
-			return *resp.StoppingInstances[0].InstanceId + " stopping"
+			bot.Respond(*resp.StoppingInstances[0].InstanceId+" stopping", i, d)
+			return
 		}
 	} else {
-		return "option does not exist"
+		bot.Respond("option does not exist", i, d)
+		return
 	}
 }
 

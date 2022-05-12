@@ -1,7 +1,6 @@
 package deploy
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -59,17 +58,14 @@ func makeOptions(data discordgo.ApplicationCommandInteractionData) map[string]st
 	return optionMap
 }
 
-func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionData, ctl bot.Controller) string {
+func (dc *deployCommands) Handler(i *discordgo.Interaction, d *discordgo.Session) {
 
-	// optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(data.Options))
-	// optionMap := make(map[string]string, len(data.Options))
-	// for _, opt := range data.Options {
-	// 	optionMap[opt.Name] = opt.StringValue()
-	// }
-	optionMap := makeOptions(data)
+	cmd := i.ApplicationCommandData()
+	optionMap := makeOptions(cmd)
 	sc, err := dc.getStackConfig("sheeta-config-bucket", optionMap)
 	if err != nil {
-		return err.Error()
+		bot.Respond(err.Error(), i, d)
+		return
 	}
 
 	// "09052b4eb7aadd5864730f884542ed7405e30eab"
@@ -94,19 +90,15 @@ func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionDa
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			default:
-				return fmt.Sprintf("aws CreateStack err: %v\n%v", err.Error(), prettyPrint(sc.CloudConfig))
+				bot.Respond(aerr.Error(), i, d)
+				return
 			}
 		}
-		return fmt.Sprint(err.Error())
+		bot.Respond(err.Error(), i, d)
+		return
 	}
+	bot.Respond(*resp.StackId, i, d)
 
-	return *resp.StackId
-
-}
-
-func prettyPrint(i interface{}) string {
-	s, _ := json.MarshalIndent(i, "", "\t")
-	return string(s)
 }
 
 func (dc *deployCommands) getFileFromBucket(bucket, key string) ([]byte, error) {
@@ -150,7 +142,6 @@ func (dc *deployCommands) getStackConfig(bucketName string, options map[string]s
 	}
 
 	tmplKey := fmt.Sprintf("%v/templates/%v", options["sha"], options["template"])
-
 	cfnFile, err := dc.getFileFromBucket("sheeta-cfn-bucket", tmplKey)
 	if err != nil {
 		sc.Result = fmt.Sprintf("get cfn failed: %v", err.Error())
@@ -197,3 +188,43 @@ func fixYamlSuffix(s string) string {
 	}
 	return s
 }
+
+//
+//
+//
+
+// func (cm *cloud) Deploy(s Services, req *cli.Context) error {
+
+// 	// The req here is the cli app context, these would be keys you set via
+// 	// `--env` in discord
+// 	env := req.String("env")
+// 	stack := req.String("stack")
+
+// 	stackTemplateURL := fmt.Sprintf("https://%s.s3-%s.amazonaws.com/templates/%s.yaml",
+// 		cm.cfg[bucketNameKey],
+// 		cm.cfg[regionKey],
+// 		stack,
+// 	)
+
+// 	sc := getStackConfig(env, stack, cm.cfg[bucketNameKey], cm.s.S3)
+
+// 	cr := cf.CreateStackInput{
+// 		RoleARN:     aws.String(cm.cfg[cloudRoleKey]),
+// 		StackName:   aws.String(sc.Name),
+// 		TemplateURL: aws.String(stackTemplateURL),
+// 		Capabilities: []*string{
+// 			// TODO::Move to config/flag
+// 			aws.String("CAPABILITY_AUTO_EXPAND"),
+// 			aws.String("CAPABILITY_NAMED_IAM"),
+// 		},
+// 	}
+
+// 	buildCreateRequest(&cr, sc.CloudConfig, sc.Tags)
+
+// 	_, err := cm.s.CF.CreateStack(&cr)
+// 	if aerr, ok := err.(awserr.Error); ok {
+// 		return fmt.Errorf("Create Stack Request: %s", aerr)
+// 	}
+
+// 	return nil
+// }

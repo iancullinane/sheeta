@@ -4,6 +4,19 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+func Respond(text string, i *discordgo.Interaction, d *discordgo.Session) {
+	d.InteractionRespond(i, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			// Note: this isn't documented, but you can use that if you want to.
+			// This flag just allows you to create messages visible only for the caller of the command
+			// (user who triggered the command)
+			Flags:   1 << 6, // ephemeral! https://discord.com/developers/docs/resources/channel#message-object-message-flags
+			Content: text,
+		},
+	})
+}
+
 // SendSuccessToUser sends a simple 'Heard'
 func SendSuccessToUser(s *discordgo.Session, channelID string, content string) {
 	var me discordgo.MessageEmbed

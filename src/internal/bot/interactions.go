@@ -42,19 +42,14 @@ func (b *bot) MakeDeferredChannelMsg() string {
 // back to match the ApiGatewayV2Prozy response format, pass in session and
 // config in case they are needed
 // todo::Pull out into more complex something?
-func (b *bot) ProcessInteraction(interaction discordgo.Interaction) (string, error) {
+func (b *bot) ProcessInteraction(interaction *discordgo.Interaction) (string, error) {
 
 	// var callback discordgo.InteractionResponse
 	var resp string
 	cmd := interaction.ApplicationCommandData()
 
-	tmpCtl := Controller{
-		MsgCh: make(chan string),
-		Done:  make(chan bool),
-	}
-
 	if mod, ok := b.r.Modules[cmd.Name]; ok {
-		resp = mod.Handler(cmd, tmpCtl)
+		mod.Handler(interaction, b.r.DiscrodSession)
 	} else {
 		resp = "No module found"
 	}

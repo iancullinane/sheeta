@@ -1,11 +1,7 @@
 package exp
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/bwmarrin/discordgo"
-	"github.com/iancullinane/sheeta/src/internal/bot"
 )
 
 type expCommands struct{}
@@ -14,21 +10,18 @@ func New() *expCommands {
 	return &expCommands{}
 }
 
-func (exp *expCommands) Handler(data discordgo.ApplicationCommandInteractionData, ctl bot.Controller) string {
+func (exp *expCommands) Handler(i *discordgo.Interaction, d *discordgo.Session) {
 
-	for i := 0; i < 5; i++ {
-		time.Sleep(1 * time.Second)
-		ctl.MsgCh <- fmt.Sprint(i)
-	}
-
-	for {
-		select {
-		case msg := <-ctl.MsgCh:
-			fmt.Println("received:", msg)
-		case <-ctl.Done:
-			return "done"
-		}
-	}
+	d.InteractionRespond(i, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			// Note: this isn't documented, but you can use that if you want to.
+			// This flag just allows you to create messages visible only for the caller of the command
+			// (user who triggered the command)
+			Flags:   1 << 6,
+			Content: "Surprise!",
+		},
+	})
 }
 
 // func f1(quit chan bool) {
