@@ -1,12 +1,11 @@
 package server
 
 import (
-	"log"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bwmarrin/discordgo"
+	"github.com/iancullinane/sheeta/src/internal/bot"
 )
 
 type serverCommands struct {
@@ -17,19 +16,6 @@ func New(ec2Client EC2InstanceClient) *serverCommands {
 	return &serverCommands{
 		ec2Client: ec2Client,
 	}
-}
-
-func respond(text string, i *discordgo.Interaction, d *discordgo.Session) {
-	d.InteractionRespond(i, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			// Note: this isn't documented, but you can use that if you want to.
-			// This flag just allows you to create messages visible only for the caller of the command
-			// (user who triggered the command)
-			Flags:   1 << 6, // ephemeral! https://discord.com/developers/docs/resources/channel#message-object-message-flags
-			Content: text,
-		},
-	})
 }
 
 func (h *serverCommands) Handler(i *discordgo.Interaction, d *discordgo.Session) {
@@ -57,11 +43,11 @@ func (h *serverCommands) Handler(i *discordgo.Interaction, d *discordgo.Session)
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			default:
-				respond(aerr.Error(), i, d)
+				bot.Respond(aerr.Error(), i, d)
 				return
 			}
 		} else {
-			respond(aerr.Error(), i, d)
+			bot.Respond(aerr.Error(), i, d)
 			return
 		}
 	}
@@ -70,20 +56,20 @@ func (h *serverCommands) Handler(i *discordgo.Interaction, d *discordgo.Session)
 		if v.Value == true {
 			resp, err := h.startInstance(*describeResult.Reservations[0].Instances[0].InstanceId)
 			if err != nil {
-				log.Println(err)
+				bot.Respond(err.Error(), i, d)
 			}
-			respond(*resp.StartingInstances[0].InstanceId+" starting", i, d)
+			bot.Respond(*resp.StartingInstances[0].InstanceId+" starting", i, d)
 			return
 		} else {
 			resp, err := h.stopInstance(*describeResult.Reservations[0].Instances[0].InstanceId)
 			if err != nil {
-				log.Println(err)
+				bot.Respond(err.Error(), i, d)
 			}
-			respond(*resp.StoppingInstances[0].InstanceId+" stopping", i, d)
+			bot.Respond(*resp.StoppingInstances[0].InstanceId+" stopping", i, d)
 			return
 		}
 	} else {
-		respond("option does not exist", i, d)
+		bot.Respond("option does not exist", i, d)
 		return
 	}
 }

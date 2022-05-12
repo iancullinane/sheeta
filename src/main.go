@@ -11,14 +11,16 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/application"
 	"github.com/iancullinane/sheeta/src/internal/bot"
 	"github.com/iancullinane/sheeta/src/internal/chat"
+	"github.com/iancullinane/sheeta/src/internal/deploy"
 	"github.com/iancullinane/sheeta/src/internal/discord"
-	"github.com/iancullinane/sheeta/src/internal/exp"
 	"github.com/iancullinane/sheeta/src/internal/server"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
@@ -94,18 +96,18 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	}
 
 	// Create clients to be used by modules
-	// cfnClient := cloudformation.New(sess)
+	cfnClient := cloudformation.New(awssess)
 	ec2Client := ec2.New(awssess)
-	// s3Client := s3manager.NewDownloader(sess)
+	s3Client := s3manager.NewDownloader(awssess)
 
 	// gitClient :=
 	// import "github.com/google/go-github/v44/github"
 
 	// Instantiate modules
 	availableModules := map[string]bot.Module{
-		// "deploy": deploy.New(cfnClient, s3Client),
+		"deploy": deploy.New(cfnClient, s3Client),
 		"server": server.New(ec2Client),
-		"ctest":  exp.New(),
+		// "ctest":  exp.New(),
 	}
 
 	appConfig := map[string]string{}

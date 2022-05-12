@@ -8,8 +8,7 @@ import (
 )
 
 type bot struct {
-	r   Resources
-	ctl *Controller
+	r Resources
 }
 
 type Resources struct {
