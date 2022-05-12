@@ -49,7 +49,7 @@ func (b *bot) ProcessInteraction(interaction *discordgo.Interaction) (string, er
 	cmd := interaction.ApplicationCommandData()
 
 	if mod, ok := b.r.Modules[cmd.Name]; ok {
-		resp = mod.Handler(interaction, b.r.DiscrodSession)
+		mod.Handler(interaction, b.r.DiscrodSession)
 	} else {
 		resp = "No module found"
 	}

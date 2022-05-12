@@ -1,7 +1,6 @@
 package deploy
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -59,17 +58,14 @@ func makeOptions(data discordgo.ApplicationCommandInteractionData) map[string]st
 	return optionMap
 }
 
-func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionData, ctl bot.Controller) string {
+func (dc *deployCommands) Handler(i *discordgo.Interaction, d *discordgo.Session) {
 
-	// optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(data.Options))
-	// optionMap := make(map[string]string, len(data.Options))
-	// for _, opt := range data.Options {
-	// 	optionMap[opt.Name] = opt.StringValue()
-	// }
-	optionMap := makeOptions(data)
+	cmd := i.ApplicationCommandData()
+	optionMap := makeOptions(cmd)
 	sc, err := dc.getStackConfig("sheeta-config-bucket", optionMap)
 	if err != nil {
-		return err.Error()
+		bot.Respond(err.Error(), i, d)
+		return
 	}
 
 	// "09052b4eb7aadd5864730f884542ed7405e30eab"
@@ -94,19 +90,15 @@ func (dc *deployCommands) Handler(data discordgo.ApplicationCommandInteractionDa
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			default:
-				return fmt.Sprintf("aws CreateStack err: %v\n%v", err.Error(), prettyPrint(sc.CloudConfig))
+				bot.Respond(aerr.Error(), i, d)
+				return
 			}
 		}
-		return fmt.Sprint(err.Error())
+		bot.Respond(err.Error(), i, d)
+		return
 	}
+	bot.Respond(*resp.StackId, i, d)
 
-	return *resp.StackId
-
-}
-
-func prettyPrint(i interface{}) string {
-	s, _ := json.MarshalIndent(i, "", "\t")
-	return string(s)
 }
 
 func (dc *deployCommands) getFileFromBucket(bucket, key string) ([]byte, error) {

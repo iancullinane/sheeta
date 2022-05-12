@@ -34,8 +34,7 @@ func NewBot(modules map[string]Module, awssess *session.Session, dissess *discor
 
 // Module is an independent set of actions containing its cli and handlers
 type Module interface {
-	Handler(*discordgo.Interaction, *discordgo.Session) string
-	// Handler(discordgo.ApplicationCommandInteractionData, chan string) string
+	Handler(*discordgo.Interaction, *discordgo.Session)
 }
 
 // Action is the function definition and its flags

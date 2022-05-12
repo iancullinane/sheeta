@@ -10,7 +10,7 @@ func New() *expCommands {
 	return &expCommands{}
 }
 
-func (exp *expCommands) Handler(i *discordgo.Interaction, d *discordgo.Session) string {
+func (exp *expCommands) Handler(i *discordgo.Interaction, d *discordgo.Session) {
 
 	d.InteractionRespond(i, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -22,8 +22,6 @@ func (exp *expCommands) Handler(i *discordgo.Interaction, d *discordgo.Session) 
 			Content: "Surprise!",
 		},
 	})
-
-	return "OK"
 }
 
 // func f1(quit chan bool) {

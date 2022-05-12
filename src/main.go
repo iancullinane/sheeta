@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/iancullinane/sheeta/src/application"
@@ -18,6 +19,7 @@ import (
 	"github.com/iancullinane/sheeta/src/internal/chat"
 	"github.com/iancullinane/sheeta/src/internal/discord"
 	"github.com/iancullinane/sheeta/src/internal/exp"
+	"github.com/iancullinane/sheeta/src/internal/server"
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
@@ -93,7 +95,7 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 
 	// Create clients to be used by modules
 	// cfnClient := cloudformation.New(sess)
-	// ec2Client := ec2.New(sess)
+	ec2Client := ec2.New(awssess)
 	// s3Client := s3manager.NewDownloader(sess)
 
 	// gitClient :=
@@ -102,8 +104,8 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	// Instantiate modules
 	availableModules := map[string]bot.Module{
 		// "deploy": deploy.New(cfnClient, s3Client),
-		// "server": server.New(ec2Client),
-		"ctest": exp.New(),
+		"server": server.New(ec2Client),
+		"ctest":  exp.New(),
 	}
 
 	appConfig := map[string]string{}
@@ -125,8 +127,9 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	headerSetter["Content-Type"] = "application/json"
 	resp.StatusCode = 200
 	resp.Headers = headerSetter
-
-	resp.Body = string(bot.MakeResponseChannelMessageWithSource(body))
+	if body != "" {
+		resp.Body = body
+	}
 
 	return resp, nil
 }
