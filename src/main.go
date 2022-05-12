@@ -27,10 +27,12 @@ var (
 	RunSlashBuilder string
 )
 
-var sess *session.Session
+var dissess *discordgo.Session
+var awssess *session.Session
 var awsCfg *aws.Config
 var publicKey string
-var dtoken string
+
+// var dtoken string
 
 // Use the init to provide certain values before the handler, in particular
 // provide the session for this invocation
@@ -39,7 +41,7 @@ func init() {
 	flag.StringVar(&RunSlashBuilder, "b", "", "Slash command builder")
 	flag.Parse()
 
-	sess = session.Must(session.NewSession())
+	awssess = session.Must(session.NewSession())
 	awsCfg = &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		S3ForcePathStyle:              aws.Bool(true),
@@ -47,7 +49,7 @@ func init() {
 	}
 
 	// TODO::Use motro to automate AWS keys
-	ssmStore := ssm.New(sess, awsCfg)
+	ssmStore := ssm.New(awssess, awsCfg)
 	pKey, err := services.GetParameter(ssmStore, aws.String("/discord/sheeta/publicKey"))
 	if err != nil {
 		panic(err)
@@ -58,7 +60,12 @@ func init() {
 		panic(err)
 	}
 
-	dtoken = *dtKey.Parameter.Value
+	d, err := discordgo.New("Bot " + *dtKey.Parameter.Value)
+	if err != nil {
+		panic(err)
+	}
+
+	dissess = d
 	publicKey = *pKey.Parameter.Value
 }
 
@@ -67,20 +74,6 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	if req.RawPath == "/v1/test" {
 		return makeResponse(req), nil
 	}
-
-	d, err := discordgo.New("Bot " + dtoken)
-	if err != nil {
-		panic(err)
-	}
-
-	d.Open()
-	defer d.Close()
-
-	user, err := d.User("@me")
-	if err != nil {
-		log.Printf("session error: %s", err)
-	}
-	log.Printf("%#v", user)
 
 	validateResp, err := discord.Validate(publicKey, req)
 	if validateResp != nil || err != nil {
@@ -114,39 +107,26 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	}
 
 	appConfig := map[string]string{}
-	bot := bot.NewBot(availableModules, sess, awsCfg, appConfig)
+	bot := bot.NewBot(availableModules, awssess, dissess, awsCfg, appConfig)
 
 	var resp events.APIGatewayV2HTTPResponse
 
-	// 	go func() {
-	// 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	// 		defer cancel()
-	// 		s.slackController.SubmitEvent(ctx, &outerEvent.InnerEvent, req.ApiAppId)
-	// 	}()
-	// 	return &slackproto.EventResponse{}, nil
-	// }
-
-	// body, err := bot.ProcessInteraction(interaction)
-	// if err != nil {
-	// headerSetter := make(map[string]string)
-	// headerSetter["Content-Type"] = "application/json"
-	// resp.StatusCode = 200
-	// resp.Headers = headerSetter
-	// text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
-	// resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
-	// }
+	body, err := bot.ProcessInteraction(&interaction)
+	if err != nil {
+		// headerSetter := make(map[string]string)
+		// headerSetter["Content-Type"] = "application/json"
+		// resp.StatusCode = 200
+		// resp.Headers = headerSetter
+		// text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
+		// resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
+	}
 
 	headerSetter := make(map[string]string)
 	headerSetter["Content-Type"] = "application/json"
 	resp.StatusCode = 200
 	resp.Headers = headerSetter
 
-	// resp.Body = string(bot.MakeResponseChannelMessageWithSource(body))
-	resp.Body = string(bot.MakeDeferredChannelMsg())
-
-	// go func() {
-	// 	body, err := bot.ProcessInteraction(interaction)
-	// }()
+	resp.Body = string(bot.MakeResponseChannelMessageWithSource(body))
 
 	return resp, nil
 }
@@ -176,7 +156,7 @@ func main() {
 
 	// Alternate run command to build the webhooks and interactions in Discord
 	if RunSlashBuilder == "create" {
-		ssmStore := ssm.New(sess, awsCfg)
+		ssmStore := ssm.New(awssess, awsCfg)
 		err := application.CreateSlashCommands(ssmStore)
 		if err != nil {
 			log.Println(err)
@@ -185,7 +165,7 @@ func main() {
 	}
 
 	if RunSlashBuilder == "delete" {
-		ssmStore := ssm.New(sess, awsCfg)
+		ssmStore := ssm.New(awssess, awsCfg)
 		err := application.DeleteSlashCommands(ssmStore)
 		if err != nil {
 			log.Println(err)

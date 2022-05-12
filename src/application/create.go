@@ -21,9 +21,6 @@ func CreateSlashCommands(ssmStore *ssm.SSM) error {
 		panic(err)
 	}
 
-	d.Open()
-	defer d.Close()
-
 	for _, v := range commands {
 
 		cmds, _ := d.ApplicationCommands("703973863335264286", "")

@@ -13,26 +13,28 @@ type bot struct {
 }
 
 type Resources struct {
-	Session    *session.Session
-	AwsConfig  *aws.Config
-	AppContext map[string]string //for things pulled from ssm
-	Modules    map[string]Module
+	AwsSession     *session.Session
+	DiscrodSession *discordgo.Session
+	AwsConfig      *aws.Config
+	AppContext     map[string]string //for things pulled from ssm
+	Modules        map[string]Module
 }
 
-func NewBot(modules map[string]Module, sess *session.Session, aws *aws.Config, ac map[string]string) *bot {
+func NewBot(modules map[string]Module, awssess *session.Session, dissess *discordgo.Session, aws *aws.Config, ac map[string]string) *bot {
 	return &bot{
 		r: Resources{
-			Session:    sess,
-			AwsConfig:  aws,
-			AppContext: ac,
-			Modules:    modules,
+			AwsSession:     awssess,
+			DiscrodSession: dissess,
+			AwsConfig:      aws,
+			AppContext:     ac,
+			Modules:        modules,
 		},
 	}
 }
 
 // Module is an independent set of actions containing its cli and handlers
 type Module interface {
-	Handler(discordgo.ApplicationCommandInteractionData, Controller) string
+	Handler(*discordgo.Interaction, *discordgo.Session) string
 	// Handler(discordgo.ApplicationCommandInteractionData, chan string) string
 }
 
