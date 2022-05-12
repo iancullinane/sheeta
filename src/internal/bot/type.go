@@ -4,7 +4,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/bwmarrin/discordgo"
-	"github.com/urfave/cli/v2"
 )
 
 type bot struct {
@@ -34,12 +33,4 @@ func NewBot(modules map[string]Module, awssess *session.Session, dissess *discor
 // Module is an independent set of actions containing its cli and handlers
 type Module interface {
 	Handler(*discordgo.Interaction, *discordgo.Session)
-}
-
-// Action is the function definition and its flags
-type Action struct {
-	Name      string
-	APIFn     func(c *cli.Context) error
-	DiscordFn func(s *discordgo.Session, m *discordgo.MessageCreate)
-	Flags     []cli.Flag
 }

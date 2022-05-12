@@ -114,7 +114,6 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	bot := bot.NewBot(availableModules, awssess, dissess, awsCfg, appConfig)
 
 	var resp events.APIGatewayV2HTTPResponse
-
 	body, err := bot.ProcessInteraction(&interaction)
 	if err != nil {
 		// headerSetter := make(map[string]string)
