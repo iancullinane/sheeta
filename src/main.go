@@ -25,7 +25,7 @@ import (
 	"github.com/iancullinane/sheeta/src/internal/services"
 )
 
-// // Variables used for command line parameters
+// Variables used for command line parameters
 var (
 	Token           string
 	RunSlashBuilder string
@@ -35,8 +35,6 @@ var dissess *discordgo.Session
 var awssess *session.Session
 var awsCfg *aws.Config
 var publicKey string
-
-// var dtoken string
 
 // Use the init to provide certain values before the handler, in particular
 // provide the session for this invocation

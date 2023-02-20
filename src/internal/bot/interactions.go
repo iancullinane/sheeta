@@ -7,37 +7,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// func MakeReturn(r discordgo.InteractionResponse, status int)
-
-// MakeResponse is a wrapper to create a generic message back to the user
-func (b *bot) MakeResponseChannelMessageWithSource(msg string) string {
-	callback := discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: msg,
-		},
-	}
-	responseData, err := json.Marshal(callback)
-	if err != nil {
-		log.Println(err)
-	}
-	return string(responseData)
-}
-
-func (b *bot) MakeDeferredChannelMsg() string {
-	callback := discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-		// Data: &discordgo.InteractionResponseData{
-		// 	Content: msg,
-		// },
-	}
-	responseData, err := json.Marshal(callback)
-	if err != nil {
-		log.Println(err)
-	}
-	return string(responseData)
-}
-
 // ProcessInteraction is for any kind of interaction to get wrapped and sent
 // back to match the ApiGatewayV2Prozy response format, pass in session and
 // config in case they are needed
@@ -54,4 +23,36 @@ func (b *bot) ProcessInteraction(interaction *discordgo.Interaction) (string, er
 		resp = "No module found"
 	}
 	return resp, nil
+}
+
+//
+//
+
+func (b *bot) MakeDeferredChannelMsg() string {
+	callback := discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		// Data: &discordgo.InteractionResponseData{
+		// 	Content: msg,
+		// },
+	}
+	responseData, err := json.Marshal(callback)
+	if err != nil {
+		log.Println(err)
+	}
+	return string(responseData)
+}
+
+// MakeResponse is a wrapper to create a generic message back to the user
+func (b *bot) MakeResponseChannelMessageWithSource(msg string) string {
+	callback := discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: msg,
+		},
+	}
+	responseData, err := json.Marshal(callback)
+	if err != nil {
+		log.Println(err)
+	}
+	return string(responseData)
 }

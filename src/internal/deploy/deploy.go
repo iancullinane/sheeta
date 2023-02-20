@@ -35,33 +35,13 @@ type StackConfig struct {
 	Tags        map[string]string `yaml:"tags"`
 }
 
-// 09052b4eb7aadd5864730f884542ed7405e30eab
-// asg/auto-scaling-group
-
-func makeOptions(data discordgo.ApplicationCommandInteractionData) map[string]string {
-	// sha := "0fbc9359e56b79932d06990aeff9524eafa631dc" // cfg sha
-	optionMap := make(map[string]string, 0)
-	for _, opt := range data.Options {
-		optionMap[opt.Name] = opt.StringValue()
-	}
-
-	if _, ok := optionMap["sha"]; !ok {
-		optionMap["sha"] = "09052b4eb7aadd5864730f884542ed7405e30eab" // cfn sha
-	}
-	if _, ok := optionMap["env"]; !ok {
-		optionMap["env"] = "dev" // cfn sha
-	}
-
-	optionMap["env-config"] = fixYamlSuffix(optionMap["env-config"])
-	optionMap["template"] = fixYamlSuffix(optionMap["template"])
-
-	return optionMap
-}
+// I want to deploy with cdk and drone......
+// https://github.com/sambaiz/cdkbot
 
 func (dc *deployCommands) Handler(i *discordgo.Interaction, d *discordgo.Session) {
 
 	cmd := i.ApplicationCommandData()
-	optionMap := makeOptions(cmd)
+	optionMap := makeDefaultOptions(cmd)
 	sc, err := dc.getStackConfig("sheeta-config-bucket", optionMap)
 	if err != nil {
 		bot.Respond(err.Error(), i, d)
@@ -179,6 +159,26 @@ func buildCreateRequest(cr *cloudformation.CreateStackInput, rcfg map[string]str
 
 	log.Printf("%#v", cr)
 
+}
+
+func makeDefaultOptions(data discordgo.ApplicationCommandInteractionData) map[string]string {
+	// sha := "0fbc9359e56b79932d06990aeff9524eafa631dc" // cfg sha
+	optionMap := make(map[string]string, 0)
+	for _, opt := range data.Options {
+		optionMap[opt.Name] = opt.StringValue()
+	}
+
+	if _, ok := optionMap["sha"]; !ok {
+		optionMap["sha"] = "09052b4eb7aadd5864730f884542ed7405e30eab" // cfn sha
+	}
+	if _, ok := optionMap["env"]; !ok {
+		optionMap["env"] = "dev" // cfn sha
+	}
+
+	optionMap["env-config"] = fixYamlSuffix(optionMap["env-config"])
+	optionMap["template"] = fixYamlSuffix(optionMap["template"])
+
+	return optionMap
 }
 
 func fixYamlSuffix(s string) string {
