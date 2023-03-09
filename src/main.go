@@ -44,7 +44,17 @@ func init() {
 	flag.StringVar(&RunSlashBuilder, "b", "", "Slash command builder")
 	flag.Parse()
 
-	awssess = session.Must(session.NewSession())
+	profilesess, err := session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{Region: aws.String("us-east-2"),
+			CredentialsChainVerboseErrors: aws.Bool(true)},
+		Profile: "sheeta",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	// awssess = session.Must(session.NewSession())
+	awssess = profilesess
 	awsCfg = &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		S3ForcePathStyle:              aws.Bool(true),
