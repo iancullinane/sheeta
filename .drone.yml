@@ -13,7 +13,7 @@ steps:
         from_secret: discord_token
     commands:
       - ./build/build.sh
-      - bin/main -t $DISCORD_TOKEN -b create
+      # - bin/main -t $DISCORD_TOKEN -b create
 
   - name: publish-ecr
     image: plugins/ecr
