@@ -157,6 +157,7 @@ func main() {
 
 	// Alternate run command to build the webhooks and interactions in Discord
 	if RunSlashBuilder == "create" {
+		log.Println("Creating slash commands")
 		ssmStore := ssm.New(awssess, awsCfg)
 		err := application.CreateSlashCommands(ssmStore)
 		if err != nil {
