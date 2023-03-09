@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -114,12 +115,12 @@ func Sheeta(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.API
 	var resp events.APIGatewayV2HTTPResponse
 	body, err := bot.ProcessInteraction(&interaction)
 	if err != nil {
-		// headerSetter := make(map[string]string)
-		// headerSetter["Content-Type"] = "application/json"
-		// resp.StatusCode = 200
-		// resp.Headers = headerSetter
-		// text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
-		// resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
+		headerSetter := make(map[string]string)
+		headerSetter["Content-Type"] = "application/json"
+		resp.StatusCode = 200
+		resp.Headers = headerSetter
+		text := fmt.Sprintf("Failed to process interaction; %v", err.Error())
+		resp.Body = string(bot.MakeResponseChannelMessageWithSource(text))
 	}
 
 	headerSetter := make(map[string]string)
@@ -151,9 +152,7 @@ func prettyPrint(i interface{}) string {
 	return string(s)
 }
 
-//
 // Main
-//
 func main() {
 
 	// Alternate run command to build the webhooks and interactions in Discord

@@ -6,9 +6,9 @@ steps:
     image: eignhpants/image-builder
     environment:
       AWS_ACCESS_KEY_ID:
-        from_secret: sheeta_aws_key
+        from_secret: sheeta_access_key_id
       AWS_SECRET_ACCESS_KEY:
-        from_secret: sheeta_aws_secret
+        from_secret: sheeta_access_key_secret
       DISCORD_TOKEN:
         from_secret: d_token
     commands:
@@ -19,9 +19,9 @@ steps:
     image: plugins/ecr
     settings:
       access_key:
-        from_secret: sheeta_aws_key
+        from_secret: sheeta_access_key_id
       secret_key:
-        from_secret: sheeta_aws_secret
+        from_secret: sheeta_access_key_secret
       repo: adventurebrave.com
       dockerfile: ecr.Dockerfile
       region: us-east-2
