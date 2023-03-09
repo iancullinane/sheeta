@@ -6,11 +6,11 @@ steps:
     image: eignhpants/image-builder
     environment:
       AWS_ACCESS_KEY_ID:
-        from_secret: sheeta_access_key_id
+        from_secret:
       AWS_SECRET_ACCESS_KEY:
         from_secret: sheeta_access_key_secret
       DISCORD_TOKEN:
-        from_secret: d_token
+        from_secret: discord_token
     commands:
       - ./build/build.sh
       - bin/main -t $DISCORD_TOKEN -b create
