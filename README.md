@@ -2,6 +2,9 @@
 
 <img align="left" width="225" height="200" src="https://i.postimg.cc/HLGxXbdy/sheeta.png">
 
+>[!NOTE]
+>Revive with Project Zomboid game infra.
+
 # Sheeta
 
 CDK deployment infrastructure can be found here: [link](https://github.com/iancullinane/sheeta-infrastructure)
